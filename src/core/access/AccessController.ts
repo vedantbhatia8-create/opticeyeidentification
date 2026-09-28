@@ -43,11 +43,13 @@ export class AccessController {
 
     const identity = await this.identities.verify(input.samples, input.policy)
     await input.onIdentity?.(identity)
+    // Policy is evaluated at the access clock (Demo Mode may shift it);
+    // the audit record always carries real wall-clock time.
     const at = clock.now()
 
     const base = {
       id: eventId(),
-      at,
+      at: Date.now(),
       site,
       resource: resource ? { id: resource.id, name: resource.name } : null,
       identity,
@@ -91,7 +93,7 @@ export class AccessController {
       const principal = input.adapter.resolvePrincipal(identity.identity.id, at)
       const authorization = authorize(principal, resource, at)
       if (authorization.allowed) {
-        input.adapter.unlock(resource.id, identity.identity.name, at)
+        input.adapter.unlock(resource.id, identity.identity.name, Date.now())
         decision = {
           ...base,
           outcome: 'granted',

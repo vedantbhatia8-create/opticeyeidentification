@@ -239,13 +239,13 @@ export function seedHotel(now: number): HotelState {
   return { propertyName: 'The Linden · San Francisco', rooms, guests, amenities }
 }
 
-/** Plausible access history for today (and yesterday evening). */
+/** A plausible full day of access history (views only show entries up to the current time). */
 export function seedEvents(now: number, office: OfficeState, hotel: HotelState): AccessEvent[] {
   const rand = seededRandom(`events:${startOfDay(now)}`)
   const events: AccessEvent[] = []
   const today = startOfDay(now)
   const push = (e: Omit<AccessEvent, 'id' | 'sensorKind' | 'demo' | 'confidence'> & { confidence?: number | null }) => {
-    if (e.at > now) return
+    // Future entries are kept: views reveal them as the day progresses.
     events.push({
       id: `evt_seed_${events.length}`,
       sensorKind: 'webcam',

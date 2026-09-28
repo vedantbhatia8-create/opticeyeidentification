@@ -35,17 +35,19 @@ export function TerminalShell({
         className="pointer-events-none fixed inset-0"
         style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(124,192,255,0.06), transparent 70%)' }}
       />
-      <header className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center px-5 py-4 sm:px-8 sm:py-6">
+      <header className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-8 sm:py-6">
         <div className="flex items-center gap-3">
           <LogoMark className="size-6 text-white [--logo-fg:#050607]" />
-          <span className="font-mono text-[12px] font-medium tracking-[0.34em] text-white/85">OPTIC ACCESS</span>
+          <span className="hidden font-mono text-[12px] font-medium tracking-[0.34em] whitespace-nowrap text-white/85 sm:inline">OPTIC ACCESS</span>
         </div>
-        <div className="font-mono text-[12px] tracking-[0.3em] text-white/60 uppercase" data-testid="terminal-location">
+        <div className="truncate text-center font-mono text-[11px] tracking-[0.24em] text-white/60 uppercase sm:text-[12px] sm:tracking-[0.3em]" data-testid="terminal-location">
           {location}
         </div>
         <div className="flex items-center justify-end gap-4">
           {topRight}
-          <TerminalClock />
+          <span className="hidden sm:inline">
+            <TerminalClock />
+          </span>
           <Link
             to={exitTo}
             className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/55 transition hover:border-white/25 hover:text-white"

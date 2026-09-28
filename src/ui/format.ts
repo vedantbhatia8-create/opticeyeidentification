@@ -1,6 +1,4 @@
-import { clock } from '../core/access/clock'
-
-export function timeAgo(at: number, now = clock.now()): string {
+export function timeAgo(at: number, now = Date.now()): string {
   const s = Math.max(0, Math.round((now - at) / 1000))
   if (s < 45) return 'Just now'
   const m = Math.round(s / 60)

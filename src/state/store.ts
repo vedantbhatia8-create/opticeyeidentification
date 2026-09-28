@@ -12,6 +12,7 @@ import type { Guest, HotelState, Room } from '../domains/hotel/model'
 import { roomResourceId } from '../domains/hotel/model'
 import type { AccessRule, Door, Employee, OfficeState, Visitor } from '../domains/office/model'
 import { seedEvents, seedHotel, seedOffice } from '../domains/seed'
+import { startOfDay } from '../ui/format'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -32,6 +33,8 @@ export interface Settings {
 
 interface State {
   schema: number
+  /** Start of the day the demo data was generated for. */
+  seededDay: number
   office: OfficeState
   hotel: HotelState
   events: AccessEvent[]
@@ -62,9 +65,10 @@ interface Actions {
   setDemo(patch: Partial<DemoSettings>): void
   clearIdentityLinks(identityId: string): void
   resetAll(): void
+  rebaseSeedToToday(): void
 }
 
-const SCHEMA = 3
+const SCHEMA = 4
 const RELOCK_MS = 6000
 
 function freshState(): Omit<State, 'settings' | 'demo'> {
@@ -74,13 +78,13 @@ function freshState(): Omit<State, 'settings' | 'demo'> {
   const events = seedEvents(now, office, hotel)
   // Last-access columns reflect the seeded history.
   for (const e of [...events].reverse()) {
-    if (e.outcome !== 'granted' || !e.resourceId) continue
+    if (e.outcome !== 'granted' || !e.resourceId || e.at > now) continue
     const door = office.doors.find((d) => d.id === e.resourceId)
     if (door) door.lastAccess = { at: e.at, name: e.subjectName }
     const room = hotel.rooms.find((r) => roomResourceId(r.number) === e.resourceId)
     if (room) room.lastAccess = { at: e.at, name: e.subjectName }
   }
-  return { schema: SCHEMA, office, hotel, events, unlocked: {} }
+  return { schema: SCHEMA, seededDay: startOfDay(now), office, hotel, events, unlocked: {} }
 }
 
 const defaultSettings: Settings = {
@@ -222,6 +226,39 @@ export const useStore = create<State & Actions>()(
         })),
 
       resetAll: () => set({ ...freshState(), demo: defaultDemo }),
+
+      /**
+       * Keeps the seeded demo world "live" on later days: seeded visits, stays
+       * and history move forward by whole days. User-created records are untouched.
+       */
+      rebaseSeedToToday: () =>
+        set((s) => {
+          const today = startOfDay(Date.now())
+          const delta = Math.round((today - s.seededDay) / 86_400_000) * 86_400_000
+          if (!delta) return s
+          const seededVisitors = new Set(['vis_david', 'vis_lena', 'vis_marco'])
+          const seededGuests = new Set(seedHotel(0).guests.map((g) => g.id))
+          const shiftAccess = <T extends { lastAccess: { at: number; name: string } | null }>(x: T): T =>
+            x.lastAccess ? { ...x, lastAccess: { ...x.lastAccess, at: x.lastAccess.at + delta } } : x
+          return {
+            seededDay: today,
+            events: s.events.map((e) => (e.id.startsWith('evt_seed_') ? { ...e, at: e.at + delta } : e)).sort((a, b) => b.at - a.at),
+            office: {
+              ...s.office,
+              doors: s.office.doors.map(shiftAccess),
+              visitors: s.office.visitors.map((v) => (seededVisitors.has(v.id) ? { ...v, start: v.start + delta, end: v.end + delta } : v)),
+            },
+            hotel: {
+              ...s.hotel,
+              rooms: s.hotel.rooms.map(shiftAccess),
+              guests: s.hotel.guests.map((g) =>
+                seededGuests.has(g.id)
+                  ? { ...g, checkIn: g.checkIn + delta, checkOut: g.checkOut + delta, checkedOutAt: g.checkedOutAt && g.checkedOutAt + delta }
+                  : g,
+              ),
+            },
+          }
+        }),
     }),
     {
       name: 'optic-access-state',

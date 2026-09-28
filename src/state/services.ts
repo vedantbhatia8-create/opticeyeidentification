@@ -37,6 +37,7 @@ export const accessController = new AccessController(identityService, {
 })
 
 export function initServices() {
+  useStore.getState().rebaseSeedToToday()
   clock.setOffset(useStore.getState().demo.clockOffsetMs)
   useStore.subscribe((s, prev) => {
     if (s.demo.clockOffsetMs !== prev.demo.clockOffsetMs) clock.setOffset(s.demo.clockOffsetMs)
