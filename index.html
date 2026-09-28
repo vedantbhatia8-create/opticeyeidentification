@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Privacy boundary: the page may only talk to its own origin (and a local
+      iris-hardware bridge). This also blocks third-party runtime telemetry
+      (MediaPipe usage logging), so no data leaves the device.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:* ws://127.0.0.1:* data: blob:; media-src 'self' blob: mediastream:; worker-src 'self' blob:"
+    />
+    <meta name="description" content="Optic Access — identity-based physical access. Your identity is the key." />
+    <title>Optic Access</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
