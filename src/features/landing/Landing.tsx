@@ -255,7 +255,7 @@ function HeroTerminal() {
   const color = done ? '#3ddc97' : '#8cc8ff'
   const progress = Math.min(1, Math.max(0, (i - 1) / 2))
   return (
-    <div className="relative mx-auto aspect-[4/3.4] w-full max-w-[520px] overflow-hidden rounded-[32px] bg-[#07080a] p-6 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.5)] ring-1 ring-black/10">
+    <div className="relative mx-auto aspect-[4/3.4] w-full max-w-[520px] overflow-hidden rounded-[32px] bg-[#07080a] p-6 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.5)] ring-1 ring-black/10 dark:ring-white/10">
       <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60% 50% at 50% 40%, rgba(124,192,255,0.10), transparent 70%)' }} />
       <div className="relative flex items-center justify-between font-mono text-[10px] tracking-[0.3em] text-white/60">
         <span className="flex items-center gap-2">

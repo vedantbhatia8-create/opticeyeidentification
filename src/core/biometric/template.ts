@@ -2,10 +2,13 @@ import { meanVector, stdVector } from './math'
 import type { BiometricSample, OpticTemplate } from './types'
 
 export const MIN_ENROLLMENT_SAMPLES = 5
-const MAX_EMBEDDINGS = 24
+const MAX_EMBEDDINGS = 16
 const MAX_IRIS_CODES_PER_EYE = 10
 
 export class TemplateError extends Error {}
+
+/** Data minimisation: 4 decimals is far below matcher sensitivity. */
+const compact = (v: number[]) => v.map((x) => Math.round(x * 1e4) / 1e4)
 
 /** Keep the best `limit` items while preserving pose diversity (items arrive in pose order). */
 function bestSpread<T>(items: T[], quality: (t: T) => number, limit: number): T[] {
@@ -37,14 +40,14 @@ export function buildTemplate(samples: BiometricSample[], poses: string[]): Opti
   }
 
   const kept = bestSpread(withEmbedding, (s) => s.quality, MAX_EMBEDDINGS)
-  const embeddings = kept.map((s) => s.features.embedding!)
-  const centroid = meanVector(embeddings)
+  const embeddings = kept.map((s) => compact(s.features.embedding!))
+  const centroid = compact(meanVector(embeddings))
 
   const geometries = samples.map((s) => s.features.geometry).filter((g): g is number[] => !!g?.length)
   let geometry: OpticTemplate['geometry']
   if (geometries.length >= 3) {
     const mean = meanVector(geometries)
-    geometry = { mean, std: stdVector(geometries, mean) }
+    geometry = { mean: compact(mean), std: compact(stdVector(geometries, mean)) }
   }
 
   const eyeCodes = (eye: 'left' | 'right') =>

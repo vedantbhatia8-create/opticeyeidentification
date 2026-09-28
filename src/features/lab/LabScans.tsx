@@ -231,7 +231,7 @@ function ScanRow({ scan, onInspect, canDelete }: { scan: OpticScan; onInspect: (
         <div>{formatBytes(scan.sizeBytes)} encrypted</div>
         <div className="mt-0.5">
           {scan.matchCount} match{scan.matchCount === 1 ? '' : 'es'}
-          {scan.lastMatchedAt && ` · last ${timeAgo(scan.lastMatchedAt, Date.now())}`}
+          {scan.lastMatchedAt && ` · last matched ${timeAgo(scan.lastMatchedAt).toLowerCase()}`}
         </div>
       </div>
       <div className="flex items-center gap-1 md:justify-end">
