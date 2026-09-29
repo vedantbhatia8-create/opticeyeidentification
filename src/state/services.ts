@@ -36,13 +36,26 @@ export const accessController = new AccessController(identityService, {
   append: (event) => useStore.getState().appendEvent(event),
 })
 
+let initPromise: Promise<void> | null = null
+
+/** Idempotent: React StrictMode mounts twice in development. */
 export function initServices() {
+  initPromise ??= initServicesOnce()
+  return initPromise
+}
+
+function initServicesOnce() {
   useStore.getState().rebaseSeedToToday()
   clock.setOffset(useStore.getState().demo.clockOffsetMs)
   useStore.subscribe((s, prev) => {
     if (s.demo.clockOffsetMs !== prev.demo.clockOffsetMs) clock.setOffset(s.demo.clockOffsetMs)
   })
-  return identityService.init(DEMO_PERSONAS)
+  return identityService.init(DEMO_PERSONAS).then(async () => {
+    // Clean up duplicate accounts created before accounts were email-keyed.
+    const { consolidateAccounts } = await import('./accounts')
+    const merged = await consolidateAccounts()
+    if (merged) console.info(`[optic] merged ${merged} duplicate account(s)`)
+  })
 }
 
 export async function resetPrototype() {

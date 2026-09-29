@@ -1,5 +1,6 @@
 import { Check, Eye, Fingerprint, Pencil, Plus, ShieldOff, ShieldCheck, Trash2, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { mergeAccounts } from '../../state/accounts'
 import { Link } from 'react-router-dom'
 import { irisCodeGrid } from '../../core/biometric/irisCode'
 import type { OpticTemplate } from '../../core/biometric/types'
@@ -31,6 +32,16 @@ export function LabScans() {
   const links = useIdentityLinks()
   const clearIdentityLinks = useStore((s) => s.clearIdentityLinks)
 
+  const dupGroups = useMemo(() => {
+    const groups = new Map<string, Identity[]>()
+    for (const i of identities) {
+      if (i.synthetic) continue
+      // Same email = same account; accounts without an email are grouped by name.
+      const k = i.email?.trim().toLowerCase() || `name:${i.name.trim().toLowerCase()}`
+      groups.set(k, [...(groups.get(k) ?? []), i])
+    }
+    return [...groups.values()].filter((g) => g.length > 1)
+  }, [identities])
   const shown = identities.filter((i) => (filter === 'all' ? true : filter === 'demo' ? i.synthetic : !i.synthetic))
   const counts = { real: identities.filter((i) => !i.synthetic).length, demo: identities.filter((i) => i.synthetic).length, all: identities.length }
 
@@ -49,6 +60,26 @@ export function LabScans() {
         </Link>
       </div>
 
+      {dupGroups.length > 0 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warn/25 bg-warn-soft px-4 py-3" data-testid="dup-banner">
+          <span className="text-[13px] text-ink">
+            {dupGroups.reduce((a, g) => a + g.length - 1, 0)} duplicate account(s) found for {dupGroups.map((g) => g[0].name).join(', ')}.
+          </span>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={async () => {
+              for (const g of dupGroups) {
+                const [keep, ...rest] = [...g].sort((a, b) => a.createdAt - b.createdAt)
+                await mergeAccounts(keep.id, rest.map((r) => r.id))
+              }
+            }}
+            data-testid="merge-duplicates"
+          >
+            Merge into one account each
+          </Button>
+        </div>
+      )}
       <div className="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5 shadow-[var(--shadow-card)]">
         {(['real', 'demo', 'all'] as Filter[]).map((f) => (
           <button

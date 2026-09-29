@@ -39,6 +39,7 @@ import { ConsoleLayout, type NavItem } from './features/shell/ConsoleLayout'
 import { ActivityPage, DevicesPage, SettingsPage } from './features/shell/SharedPages'
 import { useApplyTheme } from './features/shell/ThemeToggle'
 import { TerminalPage } from './features/terminal/TerminalPage'
+import { AccountPage } from './features/suite/AccountPage'
 import { SuiteActivity } from './features/suite/ActivityPage'
 import { AttendanceApp, AttendanceKiosk } from './features/suite/AttendanceApp'
 import { EyesOnlyApp } from './features/suite/EyesOnlyApp'
@@ -151,6 +152,7 @@ export function App() {
             <Route path="focus" element={<FocusApp />} />
             <Route path="attendance" element={<AttendanceApp />} />
             <Route path="approvals" element={<SuiteActivity />} />
+            <Route path="account" element={<AccountPage />} />
           </Route>
         </Route>
 

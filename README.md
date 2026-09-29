@@ -39,6 +39,8 @@ No camera? Choose **Simulated (no camera)** in Demo Mode. The same pipeline runs
 
 These apps need no special hardware. They share one enrollment, one presence engine (who is at the screen, how many faces, whether they are looking) and "glance to approve" step-up checks.
 
+**Accounts.** Each person has exactly one Optic account, keyed by email. Enrolling again with the same email, or with eyes that already match an account, adds another optic scan to that account instead of creating a new one. Duplicates left over from older versions are merged automatically on startup. The **Account** page (`/apps/account`) shows your profile, every optic scan, your data in every app, and lets you merge any remaining look-alike accounts.
+
 | App | What it does |
 | --- | --- |
 | **Vault** | Passwords and secure notes. A glance gates access and a PIN-derived key (PBKDF2) encrypts the vault; revealing, copying or deleting needs a fresh glance |

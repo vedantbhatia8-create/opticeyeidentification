@@ -30,12 +30,15 @@ export function SignIn() {
           }
         }}
       />
-      <div className="mt-6 text-center text-[13px] text-white/45">
-        Not enrolled yet?{' '}
-        <Link to="/lab/enroll?return=/apps/signin" className="text-white/80 underline-offset-4 hover:underline">
-          Enroll your eyes
-        </Link>{' '}
-        · or use Demo Mode (bottom right on any console) to sign in as a demo persona.
+      <div className="mt-6 flex flex-col items-center gap-3 text-center">
+        <Link
+          to="/lab/enroll?return=/apps/signin"
+          className="flex h-11 items-center rounded-xl bg-white px-6 text-[14px] font-semibold text-black hover:bg-white/90"
+          data-testid="create-account"
+        >
+          New here? Create your Optic account
+        </Link>
+        <div className="text-[12.5px] text-white/40">Already have an account? Just look at the sensor. Demo personas work too (Demo Mode on any console).</div>
       </div>
     </TerminalShell>
   )

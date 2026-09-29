@@ -1,4 +1,4 @@
-import { ClipboardCheck, EyeOff, Home, KeyRound, ListChecks, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
+import { CircleUserRound, ClipboardCheck, EyeOff, Home, KeyRound, ListChecks, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
 import type { AppId } from './store'
 
 export interface SuiteApp {
@@ -23,4 +23,5 @@ export const SUITE_NAV = [
   { to: '/apps', label: 'Home', icon: Home, end: true },
   ...SUITE_APPS.map((a) => ({ to: a.to, label: a.name, icon: a.icon, end: false })),
   { to: '/apps/approvals', label: 'Activity', icon: ListChecks, end: false },
+  { to: '/apps/account', label: 'Account', icon: CircleUserRound, end: false },
 ]

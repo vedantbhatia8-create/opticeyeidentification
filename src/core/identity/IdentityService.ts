@@ -42,6 +42,8 @@ export interface EnrollInput {
   demoSeed?: string
 }
 
+export const normalizeEmail = (email?: string | null) => (email ?? '').trim().toLowerCase()
+
 const newId = (prefix: string) => `${prefix}_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`
 
 export class IdentityService {
@@ -148,8 +150,11 @@ export class IdentityService {
     await this.requireReady()
     const now = Date.now()
     let identity = input.identityId ? this.identities.get(input.identityId) : undefined
+    // One account per email: a new enrollment with a known email becomes another scan on that account.
+    if (!identity && !input.demoSeed) identity = this.findAccountByEmail(input.email)
     if (identity) {
-      identity = { ...identity, name: input.name || identity.name, email: input.email ?? identity.email, updatedAt: now }
+      const email = normalizeEmail(input.email) && normalizeEmail(input.email) !== normalizeEmail(identity.email) ? input.email : identity.email
+      identity = { ...identity, name: input.name || identity.name, email: email ?? input.email, updatedAt: now }
     } else {
       identity = {
         id: input.identityId ?? newId('idn'),
@@ -221,6 +226,51 @@ export class IdentityService {
     this.identities.clear()
     this.templateCache.clear()
     await this.ensureDemoIdentities(seeds)
+    this.emit()
+  }
+
+  /** The real (non-demo) account registered to this email, if any. */
+  findAccountByEmail(email?: string | null): Identity | undefined {
+    const key = normalizeEmail(email)
+    if (!key) return undefined
+    return [...this.identities.values()]
+      .filter((i) => !i.synthetic && normalizeEmail(i.email) === key)
+      .sort((a, b) => a.createdAt - b.createdAt)[0]
+  }
+
+  /** Groups of real identities that share an email (oldest first). */
+  duplicateGroups(): Identity[][] {
+    const groups = new Map<string, Identity[]>()
+    for (const i of this.identities.values()) {
+      const key = normalizeEmail(i.email)
+      if (i.synthetic || !key) continue
+      groups.set(key, [...(groups.get(key) ?? []), i])
+    }
+    return [...groups.values()].filter((g) => g.length > 1).map((g) => g.sort((a, b) => a.createdAt - b.createdAt))
+  }
+
+  /** Moves every optic scan from `sourceIds` onto `targetId` and removes the source identities. */
+  async mergeIdentities(targetId: string, sourceIds: string[]) {
+    const { store } = await this.requireReady()
+    const target = this.identities.get(targetId)
+    if (!target) throw new Error('Target identity not found')
+    for (const sourceId of sourceIds) {
+      if (sourceId === targetId) continue
+      const source = this.identities.get(sourceId)
+      if (!source) continue
+      for (const scan of [...this.scans.values()].filter((s) => s.identityId === sourceId)) {
+        const moved = { ...scan, identityId: targetId }
+        await store.put(STORES.scans, moved)
+        this.scans.set(scan.id, moved)
+      }
+      if (!target.email && source.email) target.email = source.email
+      if (!target.externalId && source.externalId) target.externalId = source.externalId
+      await store.delete(STORES.identities, sourceId)
+      this.identities.delete(sourceId)
+    }
+    const next = { ...target, updatedAt: Date.now() }
+    await store.put(STORES.identities, next)
+    this.identities.set(targetId, next)
     this.emit()
   }
 

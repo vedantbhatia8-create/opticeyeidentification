@@ -55,9 +55,13 @@ export function EnrollmentSession({
 }) {
   const demo = useStore((s) => s.demo)
   const sensorKind = useStore((s) => s.settings.sensorKind)
+  // One account per email: enrolling with a known email adds a scan to that account.
   const plannedId = useMemo(
-    () => subject.identityId ?? `idn_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
-    [subject.identityId],
+    () =>
+      subject.identityId ??
+      identityService.findAccountByEmail(subject.email)?.id ??
+      `idn_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
+    [subject.identityId, subject.email],
   )
   // Enrollment always uses the live camera. Only an explicit simulated sensor enrolls a synthetic identity.
   const simulated = demo.enabled && sensorKind === 'simulated'
@@ -134,7 +138,9 @@ export function EnrollmentSession({
       )
       // Duplicate check: does this eye already belong to someone else?
       const check = await identityService.verify(samples.current.map((s) => s.sample))
-      const duplicate = check.status === 'verified' && check.identity.id !== plannedId ? check.identity : null
+      // Same eyes already on a different real account → offer to add this scan to it instead.
+      const duplicate =
+        check.status === 'verified' && check.identity.id !== plannedId && !check.identity.synthetic ? check.identity : null
       if (alive.current) setStage({ kind: 'review', template, duplicate })
     } catch (err) {
       const message = err instanceof TemplateError ? err.message : 'Enrollment failed.'
@@ -180,10 +186,12 @@ export function EnrollmentSession({
     return () => clearTimeout(t)
   }, [sensor, stage])
 
-  const save = async (template: OpticTemplate) => {
+  const save = async (template: OpticTemplate, into?: Identity) => {
     setStage({ kind: 'saving' })
     const result = await identityService.enroll(
-      { ...subject, identityId: plannedId, label: label.trim() || 'Optic scan', demoSeed },
+      into
+        ? { ...subject, identityId: into.id, name: into.name, email: into.email, label: label.trim() || 'Optic scan' }
+        : { ...subject, identityId: plannedId, label: label.trim() || 'Optic scan', demoSeed },
       template,
     )
     samples.current = [] // drop in-memory samples
@@ -301,6 +309,8 @@ export function EnrollmentSession({
               label={label}
               setLabel={setLabel}
               onSave={() => save(stage.template)}
+              onSaveInto={(identity) => save(stage.template, identity)}
+              existingAccount={identityService.getIdentity(plannedId) ?? null}
               onRestart={restart}
             />
           )}
@@ -383,6 +393,8 @@ function ReviewCard({
   label,
   setLabel,
   onSave,
+  onSaveInto,
+  existingAccount,
   onRestart,
 }: {
   template: OpticTemplate
@@ -391,6 +403,8 @@ function ReviewCard({
   label: string
   setLabel: (v: string) => void
   onSave: () => void
+  onSaveInto: (identity: Identity) => void
+  existingAccount: Identity | null
   onRestart: () => void
 }) {
   const size = new TextEncoder().encode(JSON.stringify(template)).length
@@ -434,12 +448,27 @@ function ReviewCard({
           </span>
         </div>
       </div>
+      {existingAccount && !duplicate && (
+        <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 text-[13px] text-white/70">
+          This scan will be added to your existing account, <b className="text-white">{existingAccount.name}</b>.
+        </div>
+      )}
       {duplicate && (
-        <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-[#f5b454]/30 bg-[#f5b454]/[0.07] p-3.5 text-[13px] text-[#f5d49a]">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-          <span>
-            These eyes already match <b>{duplicate.name}</b>. Saving will create a second identity for the same person.
-          </span>
+        <div className="mt-4 rounded-xl border border-[#f5b454]/30 bg-[#f5b454]/[0.07] p-3.5 text-[13px] text-[#f5d49a]" data-testid="enroll-duplicate">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              These eyes already belong to the account <b>{duplicate.name}</b>
+              {duplicate.email ? ` (${duplicate.email})` : ''}. Add this scan there so everything stays in one account.
+            </span>
+          </div>
+          <button
+            onClick={() => onSaveInto(duplicate)}
+            className="mt-3 h-10 w-full rounded-lg bg-[#f5b454] text-[13.5px] font-semibold text-black hover:bg-[#f5b454]/90"
+            data-testid="save-into-existing"
+          >
+            Add to {duplicate.name}’s account
+          </button>
         </div>
       )}
       <div className="mt-6 flex gap-2">
@@ -448,10 +477,14 @@ function ReviewCard({
         </button>
         <button
           onClick={onSave}
-          className="h-11 flex-[2] rounded-xl bg-white text-[14px] font-semibold text-black hover:bg-white/90"
+          className={
+            duplicate
+              ? 'h-11 flex-[2] rounded-xl border border-white/15 text-[14px] font-medium text-white/70 hover:bg-white/5'
+              : 'h-11 flex-[2] rounded-xl bg-white text-[14px] font-semibold text-black hover:bg-white/90'
+          }
           data-testid="save-scan"
         >
-          Save optic identity
+          {duplicate ? 'Keep as a separate account' : existingAccount ? 'Add to my account' : 'Save optic identity'}
         </button>
       </div>
     </Panel>

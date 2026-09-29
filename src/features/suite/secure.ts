@@ -213,6 +213,53 @@ export async function deleteDoc(id: string) {
   await (await store()).delete(STORES.suite, id)
 }
 
+/** Counts an account's sealed records without decrypting anything. */
+export async function accountRecordSummary(identityId: string) {
+  const all = await (await store()).getAll<OpticDoc | VaultMeta | SealedRecord>(STORES.suite)
+  return {
+    hasVault: all.some((r) => r.kind === 'vault-meta' && r.ownerId === identityId),
+    vaultItems: all.filter((r) => r.kind === 'vault-item' && r.ownerId === identityId).length,
+    docsOwned: all.filter((r) => r.kind === 'doc' && r.ownerId === identityId).length,
+    docsShared: all.filter((r) => r.kind === 'doc' && r.ownerId !== identityId && (r as OpticDoc).recipients.includes(identityId)).length,
+  }
+}
+
+/**
+ * Account merge: re-points sealed app records from `sourceIds` to `targetId`.
+ * A vault can only move if the target has none (vaults sealed with different
+ * PINs cannot be fused without both PINs); those are reported back.
+ */
+export async function reassignSuiteRecords(targetId: string, sourceIds: string[]): Promise<{ vaultsNotMerged: number }> {
+  const s = await store()
+  const all = await s.getAll<OpticDoc | VaultMeta | SealedRecord>(STORES.suite)
+  const swap = (id: string) => (sourceIds.includes(id) ? targetId : id)
+  let targetHasVault = all.some((r) => r.kind === 'vault-meta' && r.ownerId === targetId)
+  let vaultsNotMerged = 0
+  for (const r of all) {
+    if (r.kind === 'doc') {
+      const d = r as OpticDoc
+      if (sourceIds.includes(d.ownerId) || d.recipients.some((x) => sourceIds.includes(x))) {
+        await s.put(STORES.suite, { ...d, ownerId: swap(d.ownerId), recipients: [...new Set(d.recipients.map(swap))] })
+      }
+    }
+  }
+  for (const sourceId of sourceIds) {
+    const meta = all.find((r) => r.kind === 'vault-meta' && r.ownerId === sourceId) as VaultMeta | undefined
+    if (!meta) continue
+    if (targetHasVault) {
+      vaultsNotMerged++
+      continue
+    }
+    await s.delete(STORES.suite, meta.id)
+    await s.put(STORES.suite, { ...meta, id: metaId(targetId), ownerId: targetId })
+    for (const r of all.filter((x) => x.kind === 'vault-item' && x.ownerId === sourceId)) {
+      await s.put(STORES.suite, { ...r, ownerId: targetId })
+    }
+    targetHasVault = true
+  }
+  return { vaultsNotMerged }
+}
+
 export async function purgeSuiteSecrets() {
   await (await store()).clear(STORES.suite)
 }

@@ -82,6 +82,7 @@ export function SuiteLayout() {
       <div className="space-y-2 border-t border-line p-3">
         <CameraPill />
         <div className="flex items-center gap-2.5 px-1">
+          <Link to="/apps/account" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg hover:opacity-80" data-testid="account-link">
           <Avatar name={session.name ?? '?'} size={30} />
           <div className="min-w-0 flex-1 leading-tight">
             <div className="truncate text-[13px] font-medium text-ink" data-testid="session-name">{session.name}</div>
@@ -89,6 +90,7 @@ export function SuiteLayout() {
               <ScanEye className="size-3" /> Glance sign-in
             </div>
           </div>
+          </Link>
           <ThemeToggle />
           <button onClick={() => { lockAllVaults(); session.signOut() }} className="rounded-lg p-1.5 text-muted hover:bg-surface-2 hover:text-ink" aria-label="Sign out" data-testid="sign-out">
             <LogOut className="size-4" />

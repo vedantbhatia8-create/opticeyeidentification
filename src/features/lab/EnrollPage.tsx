@@ -53,6 +53,7 @@ export function EnrollPage() {
   const begin = (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name.trim()) return setError('Name is required.')
+    if (!target && !existingIdentity && !form.email.trim()) return setError('Email is required — it’s how your Optic account is identified.')
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) return setError('Enter a valid email address.')
     setError(null)
     setSubject({
@@ -81,17 +82,18 @@ export function EnrollPage() {
     }
   }
 
-  const location = target ? `Enroll · ${target.kind}` : existingIdentity ? 'Add optic scan' : 'Enrollment'
+  const location = target ? `Enroll · ${target.kind}` : existingIdentity ? 'Add optic scan' : 'Create account'
+  const emailAccount = !existingIdentity && form.email.includes('@') ? identityService.findAccountByEmail(form.email) : undefined
 
   return (
     <TerminalShell location={location} exitTo={returnTo}>
       {!subject ? (
         <form onSubmit={begin} className="mt-10 w-full max-w-[440px]" data-testid="enroll-form">
           <div className="font-mono text-[11px] tracking-[0.26em] text-scan-accent uppercase">
-            {existingIdentity ? 'Add a scan to an existing identity' : 'New optic identity'}
+            {existingIdentity ? 'Add a scan to your account' : person ? 'Link an Optic account' : 'Optic account'}
           </div>
           <h1 className="mt-3 text-[30px] font-semibold tracking-tight">
-            {existingIdentity ? existingIdentity.name : person ? `Enroll ${person.name}` : 'Enroll identity'}
+            {existingIdentity ? existingIdentity.name : person ? `Enroll ${person.name}` : 'Create your account'}
           </h1>
           <p className="mt-2 text-[15px] leading-relaxed text-white/55">
             You’ll be guided through five short looks. Takes about 20 seconds. Make sure your face is evenly lit.
@@ -99,6 +101,12 @@ export function EnrollPage() {
           <div className="mt-8 space-y-4">
             <DarkField label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} autoFocus placeholder="Jane Appleseed" disabled={!!existingIdentity} testId="enroll-name" />
             <DarkField label="Email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="jane@company.com" type="email" disabled={!!existingIdentity} testId="enroll-email" />
+            {emailAccount && (
+              <div className="rounded-xl border border-granted/25 bg-granted/[0.06] px-4 py-3 text-[13px] text-white/75" data-testid="existing-account">
+                Welcome back, <b className="text-white">{emailAccount.name}</b>. This email already has an Optic account — this
+                enrollment adds another optic scan to it instead of creating a new account.
+              </div>
+            )}
             <DarkField label="User ID" value={form.externalId} onChange={(v) => setForm({ ...form, externalId: v })} placeholder="e.g. EMP-1042" disabled={!!existingIdentity} testId="enroll-userid" />
           </div>
           {error && <div className="mt-3 text-[13px] text-denied">{error}</div>}
@@ -107,7 +115,7 @@ export function EnrollPage() {
             className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white text-[15px] font-semibold text-black transition hover:bg-white/90"
             data-testid="enroll-start"
           >
-            Enroll identity <ArrowRight className="size-4" />
+            {existingIdentity || emailAccount ? 'Add optic scan' : person ? 'Enroll identity' : 'Create account'} <ArrowRight className="size-4" />
           </button>
           <div className="mt-5 flex items-start gap-2 text-[12px] leading-relaxed text-white/40">
             <Lock className="mt-0.5 size-3.5 shrink-0" />
@@ -132,8 +140,8 @@ export function EnrollPage() {
                   <Link to="/lab/authenticate" className="flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-[14px] font-semibold text-black" data-testid="go-authenticate">
                     Authenticate now <ArrowRight className="size-4" />
                   </Link>
-                  <Link to="/lab/scans" className="flex h-11 items-center rounded-xl border border-white/15 px-5 text-[14px] font-medium text-white/80">
-                    View optic scans
+                  <Link to="/apps/account" className="flex h-11 items-center rounded-xl border border-white/15 px-5 text-[14px] font-medium text-white/80" data-testid="go-account">
+                    Open my account
                   </Link>
                 </>
               )}
