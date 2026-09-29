@@ -21,6 +21,7 @@ Camera access only works on `http://localhost` or `https://`. Use a recent Chrom
 | `/office` | **Phase 2:** Office console (Meridian HQ) |
 | `/hotel` | **Phase 3:** Hotel console (The Linden) |
 | `/terminal/office/:doorId`, `/terminal/hotel/:roomId` | Full-screen door terminals with a virtual door |
+| `/apps` | **Optic Apps:** software products on the same identity engine (sign in with a glance) |
 
 Other commands: `npm test` (unit tests), `npm run typecheck`, `npm run build`, `npm run lint`.
 
@@ -33,6 +34,21 @@ Other commands: `npm test` (unit tests), `npm run typecheck`, `npm run build`, `
 5. **Hotel.** Emma at Room 814 → granted with *Stay Sep 27 – Sep 30*. Check her out at the front desk and try again → *Your hotel stay has ended.*
 
 No camera? Choose **Simulated (no camera)** in Demo Mode. The same pipeline runs with a camera-free sensor.
+
+## Optic Apps (`/apps`)
+
+These apps need no special hardware. They share one enrollment, one presence engine (who is at the screen, how many faces, whether they are looking) and "glance to approve" step-up checks.
+
+| App | What it does |
+| --- | --- |
+| **Vault** | Passwords and secure notes. A glance gates access and a PIN-derived key (PBKDF2) encrypts the vault; revealing, copying or deleting needs a fresh glance |
+| **Eyes-Only** | Sealed documents for chosen readers, with expiry and view limits. Content is only on screen while a verified reader is looking; for anyone else it is removed from the page, not just blurred |
+| **Guard** | Walk-away lock, stranger lock and shoulder-surf shield on every app page |
+| **Family** | Profiles, daily limits, allowed hours and a kids' launcher; `/apps/family/screen` switches to whoever sits down |
+| **Focus** | Focus sessions that count real eyes-on-screen time, with a score and timeline |
+| **Attendance** | Rosters plus a check-in kiosk running on the same access engine as the doors |
+
+In the browser, these apps protect Optic pages only. Whole-computer enforcement (locking the Mac, controlling other apps) would need a native macOS agent.
 
 ## Architecture
 
