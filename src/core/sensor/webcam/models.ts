@@ -8,6 +8,24 @@ import { sensorError } from '../types'
 const base = import.meta.env.BASE_URL
 
 let landmarkerPromise: Promise<FaceLandmarker> | null = null
+
+/**
+ * Software-emulated WebGL (e.g. SwiftShader on machines without a usable GPU)
+ * is slower than MediaPipe's CPU path and can stall when shared with the
+ * embedding network, so prefer the CPU delegate there.
+ */
+export function hasHardwareGpu(): boolean {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl')
+    if (!gl) return false
+    const info = gl.getExtension('WEBGL_debug_renderer_info')
+    const renderer = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return !/swiftshader|llvmpipe|software/i.test(renderer)
+  } catch {
+    return false
+  }
+}
 let embedderPromise: Promise<FaceEmbedder> | null = null
 
 export function loadLandmarker(): Promise<FaceLandmarker> {
@@ -25,6 +43,7 @@ export function loadLandmarker(): Promise<FaceLandmarker> {
         outputFaceBlendshapes: false,
         outputFacialTransformationMatrixes: false,
       })
+    if (!hasHardwareGpu()) return make('CPU')
     try {
       return await make('GPU')
     } catch {

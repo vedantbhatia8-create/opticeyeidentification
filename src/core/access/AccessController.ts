@@ -93,15 +93,13 @@ export class AccessController {
       const principal = input.adapter.resolvePrincipal(identity.identity.id, at)
       const authorization = authorize(principal, resource, at)
       if (authorization.allowed) {
-        input.adapter.unlock(resource.id, identity.identity.name, Date.now())
-        decision = {
-          ...base,
-          outcome: 'granted',
-          authorization,
+        const copy = input.adapter.describeGrant?.(identity.identity.name, resource, at) ?? {
           headline: 'ACCESS GRANTED',
           title: `Welcome, ${identity.identity.name}`,
           detail: resource.name,
         }
+        input.adapter.unlock(resource.id, identity.identity.name, Date.now())
+        decision = { ...base, outcome: 'granted', authorization, ...copy }
       } else {
         const copy = input.adapter.describeDenial(authorization, resource)
         decision = { ...base, outcome: 'denied-unauthorized', authorization, headline: 'ACCESS DENIED', ...copy }

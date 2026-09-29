@@ -26,6 +26,8 @@ import type { LandmarkPoint } from './landmarks'
 import { loadEmbedder, loadLandmarker, type FaceEmbedder } from './models'
 import { computeGeometry, extractIrisCode, renderFaceChip, wipeCanvas } from './processing'
 
+let lastTimestamp = 0
+
 /** Minimum frame quality for a frame to be turned into a biometric sample. */
 export const CAPTURE_MIN_QUALITY = 0.35
 
@@ -45,9 +47,12 @@ export class WebcamSensor implements BiometricSensor {
   private embedder: FaceEmbedder | null = null
   private raf = 0
   private lastVideoTime = -1
-  private lastTimestamp = 0
   private frameCount = 0
   private brightness = 0.5
+  /** Adaptive duty cycle: tracking may use at most ~half of the main thread. */
+  private nextDetectAt = 0
+  /** Tracking pauses while a sample is being captured. */
+  private capturing = false
   private previousCenter: Point | null = null
   private startToken = 0
   private readonly statusListeners = new Set<(s: SensorStatus) => void>()
@@ -143,8 +148,9 @@ export class WebcamSensor implements BiometricSensor {
   }
 
   private nextTimestamp(): number {
-    this.lastTimestamp = Math.max(this.lastTimestamp + 1, performance.now())
-    return this.lastTimestamp
+    // The landmarker is shared by every sensor instance, so timestamps must be monotonic globally.
+    lastTimestamp = Math.max(lastTimestamp + 1, performance.now())
+    return lastTimestamp
   }
 
   private measureBrightness(source: CanvasImageSource) {
@@ -164,7 +170,9 @@ export class WebcamSensor implements BiometricSensor {
     const landmarker = this.landmarker
     if (!video || !landmarker || this.status.state !== 'running') return
     this.raf = requestAnimationFrame(this.loop)
-    if (video.readyState < 2 || video.currentTime === this.lastVideoTime) return
+    if (video.readyState < 2 || video.currentTime === this.lastVideoTime || this.capturing) return
+    const started = performance.now()
+    if (started < this.nextDetectAt) return
     this.lastVideoTime = video.currentTime
     try {
       if (this.frameCount++ % 6 === 0) this.measureBrightness(video)
@@ -181,6 +189,10 @@ export class WebcamSensor implements BiometricSensor {
       this.observationListeners.forEach((l) => l(observation))
     } catch (err) {
       console.warn('[optic] tracking frame failed', err)
+    } finally {
+      // On slow machines, leave at least as much idle time as detection took.
+      const took = performance.now() - started
+      this.nextDetectAt = took > 25 ? performance.now() + took : 0
     }
   }
 
@@ -196,6 +208,7 @@ export class WebcamSensor implements BiometricSensor {
     // Temporary processing surfaces — wiped in `finally`.
     const frame = document.createElement('canvas')
     const chip = document.createElement('canvas')
+    this.capturing = true
     try {
       frame.width = w
       frame.height = h
@@ -235,6 +248,7 @@ export class WebcamSensor implements BiometricSensor {
       console.warn('[optic] sample extraction failed', err)
       return null
     } finally {
+      this.capturing = false
       wipeCanvas(frame)
       wipeCanvas(chip)
     }

@@ -10,8 +10,8 @@ export interface KeyValueStore {
 }
 
 const DB_NAME = 'optic-access'
-const DB_VERSION = 1
-export const STORES = { identities: 'identities', scans: 'scans', keys: 'keys' } as const
+const DB_VERSION = 2
+export const STORES = { identities: 'identities', scans: 'scans', keys: 'keys', suite: 'suite' } as const
 
 function req<T>(r: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -79,6 +79,8 @@ export async function openStore(): Promise<KeyValueStore> {
       if (!db.objectStoreNames.contains(STORES.identities)) db.createObjectStore(STORES.identities, { keyPath: 'id' })
       if (!db.objectStoreNames.contains(STORES.scans)) db.createObjectStore(STORES.scans, { keyPath: 'id' })
       if (!db.objectStoreNames.contains(STORES.keys)) db.createObjectStore(STORES.keys)
+      // v2: sealed records for Optic apps (vault items, eyes-only documents)
+      if (!db.objectStoreNames.contains(STORES.suite)) db.createObjectStore(STORES.suite, { keyPath: 'id' })
     }
     return new IdbStore(await req(open))
   } catch (err) {

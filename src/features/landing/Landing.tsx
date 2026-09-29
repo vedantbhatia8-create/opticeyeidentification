@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { Logo, LogoMark } from '../../ui/Logo'
 import { buttonClass, cx } from '../../ui/primitives'
 import { PRINCIPLES } from '../shell/SharedPages'
+import { SUITE_APPS } from '../suite/apps'
 import { ThemeToggle } from '../shell/ThemeToggle'
 
 export function Landing() {
@@ -17,6 +18,7 @@ export function Landing() {
             <a href="#how" className="hover:text-ink">How it works</a>
             <a href="#offices" className="hover:text-ink">Offices</a>
             <a href="#hotels" className="hover:text-ink">Hotels</a>
+            <a href="#apps" className="hover:text-ink">Apps</a>
             <a href="#security" className="hover:text-ink">Security</a>
           </div>
           <div className="flex items-center gap-2">
@@ -125,6 +127,34 @@ export function Landing() {
           <DecisionCard name="Emma Johnson" place="Room 814" granted detail="Stay · Sep 27 – Sep 30" />
           <DecisionCard name="Emma Johnson" place="Room 814" reason="Your hotel stay has ended." />
         </SplitFeature>
+      </Section>
+
+      {/* Apps */}
+      <Section id="apps" eyebrow="Optic Apps" title="The same identity engine, in software. No new hardware.">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SUITE_APPS.map((a) => (
+            <Link
+              key={a.id}
+              to={a.to}
+              className="group rounded-2xl border border-line bg-surface p-5 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-float)]"
+            >
+              <span className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent-text">
+                <a.icon className="size-5" />
+              </span>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-[15.5px] font-semibold text-ink">Optic {a.name}</span>
+                <ArrowRight className="size-4 text-subtle transition group-hover:translate-x-0.5 group-hover:text-ink" />
+              </div>
+              <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{a.tagline}</p>
+              <p className="mt-3 text-[12px] text-subtle">{a.combines}</p>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-6">
+          <Link to="/apps" className={buttonClass('primary')} data-testid="open-apps">
+            Open Optic Apps <ArrowRight className="size-4" />
+          </Link>
+        </div>
       </Section>
 
       {/* Security */}

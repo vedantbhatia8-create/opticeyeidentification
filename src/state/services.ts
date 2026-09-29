@@ -46,6 +46,10 @@ export function initServices() {
 }
 
 export async function resetPrototype() {
+  const { useSuite } = await import('../features/suite/store')
+  const { purgeSuiteSecrets } = await import('../features/suite/secure')
+  useSuite.getState().reset()
+  await purgeSuiteSecrets()
   useStore.getState().resetAll()
   await identityService.purgeAll(DEMO_PERSONAS)
 }

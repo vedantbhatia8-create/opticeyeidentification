@@ -1,7 +1,7 @@
 import type { AuthorizationCode, AuthorizationResult, Principal, ProtectedResource } from '../authorization/types'
 import type { IdentityVerification } from '../identity/types'
 
-export type SiteId = 'office' | 'hotel' | 'lab'
+export type SiteId = 'office' | 'hotel' | 'lab' | 'attendance'
 
 /**
  * A domain (office, hotel, …) plugs into the shared access engine by
@@ -13,8 +13,10 @@ export interface SiteAdapter {
   getResource(resourceId: string): ProtectedResource | null
   /** Domain-specific wording for a denial, e.g. "Your hotel stay has ended." */
   describeDenial(result: AuthorizationResult, resource: ProtectedResource): { title: string; detail: string }
-  /** Drive the (virtual) lock. */
+  /** Drive the (virtual) lock — or whatever "granted" means for this site. */
   unlock(resourceId: string, byName: string, at: number): void
+  /** Optional wording for a grant (e.g. "CHECKED IN" for attendance). */
+  describeGrant?(name: string, resource: ProtectedResource, at: number): { headline: string; title: string; detail: string }
 }
 
 export type AccessOutcome =

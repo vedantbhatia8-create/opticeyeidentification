@@ -13,7 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { DemoGuide } from './features/demo/DemoGuide'
 import {
   FrontDeskPage,
@@ -39,6 +39,18 @@ import { ConsoleLayout, type NavItem } from './features/shell/ConsoleLayout'
 import { ActivityPage, DevicesPage, SettingsPage } from './features/shell/SharedPages'
 import { useApplyTheme } from './features/shell/ThemeToggle'
 import { TerminalPage } from './features/terminal/TerminalPage'
+import { SuiteActivity } from './features/suite/ActivityPage'
+import { AttendanceApp, AttendanceKiosk } from './features/suite/AttendanceApp'
+import { EyesOnlyApp } from './features/suite/EyesOnlyApp'
+import { EyesOnlyViewer } from './features/suite/EyesOnlyViewer'
+import { FamilyApp, FamilyScreen } from './features/suite/FamilyApp'
+import { FocusApp } from './features/suite/FocusApp'
+import { GuardApp } from './features/suite/GuardApp'
+import { SuiteHome } from './features/suite/Home'
+import { PresenceProvider } from './features/suite/presence'
+import { SignIn } from './features/suite/SignIn'
+import { SuiteLayout } from './features/suite/SuiteLayout'
+import { VaultApp } from './features/suite/VaultApp'
 import { initServices } from './state/services'
 import { useStore } from './state/store'
 
@@ -115,6 +127,31 @@ export function App() {
           <Route path="activity" element={<ActivityPage site="hotel" />} />
           <Route path="devices" element={<DevicesPage site="hotel" />} />
           <Route path="settings" element={<SettingsPage site="hotel" />} />
+        </Route>
+
+        {/* Optic Apps — software products on the same identity engine */}
+        <Route
+          path="/apps"
+          element={
+            <PresenceProvider>
+              <Outlet />
+            </PresenceProvider>
+          }
+        >
+          <Route path="signin" element={<SignIn />} />
+          <Route path="view/:docId" element={<EyesOnlyViewer />} />
+          <Route path="family/screen" element={<FamilyScreen />} />
+          <Route path="attendance/kiosk/:eventId" element={<AttendanceKiosk />} />
+          <Route element={<SuiteLayout />}>
+            <Route index element={<SuiteHome />} />
+            <Route path="vault" element={<VaultApp />} />
+            <Route path="eyes-only" element={<EyesOnlyApp />} />
+            <Route path="guard" element={<GuardApp />} />
+            <Route path="family" element={<FamilyApp />} />
+            <Route path="focus" element={<FocusApp />} />
+            <Route path="attendance" element={<AttendanceApp />} />
+            <Route path="approvals" element={<SuiteActivity />} />
+          </Route>
         </Route>
 
         {/* Physical terminals — same component, same engine */}

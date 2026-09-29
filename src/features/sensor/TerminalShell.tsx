@@ -4,14 +4,14 @@ import { Link } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
 import { LogoMark } from '../../ui/Logo'
 
-export function TerminalClock() {
+export function TerminalClock({ className }: { className?: string } = {}) {
   const [now, setNow] = useState(clock.now())
   useEffect(() => {
     const t = setInterval(() => setNow(clock.now()), 1000)
     return () => clearInterval(t)
   }, [])
   return (
-    <span className="tabular font-mono text-[12px] tracking-[0.18em] text-white/50">
+    <span className={className ?? 'tabular font-mono text-[12px] tracking-[0.18em] text-white/50'}>
       {new Date(now).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
     </span>
   )

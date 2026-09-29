@@ -4,7 +4,7 @@
  * by a site adapter from an identity id) and a resource, never a template.
  */
 
-export type PrincipalKind = 'employee' | 'visitor' | 'guest'
+export type PrincipalKind = 'employee' | 'visitor' | 'guest' | 'member'
 
 export type PrincipalStatus = 'active' | 'pending' | 'suspended' | 'revoked' | 'ended'
 

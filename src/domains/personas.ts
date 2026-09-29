@@ -15,7 +15,7 @@ const p = (
   key: string,
   name: string,
   email: string,
-  origin: 'office' | 'hotel',
+  origin: 'office' | 'hotel' | 'demo',
   context: string,
   featured = false,
 ): DemoPersona => ({ key, identityId: `idn_demo_${key}`, seed: `persona:${key}`, name, email, origin, context, featured })
@@ -39,6 +39,8 @@ export const DEMO_PERSONAS: DemoPersona[] = [
   p('chloe', 'Chloe Dubois', 'chloe.dubois@gmail.com', 'hotel', 'Hotel guest · Suite 819'),
   p('kenji', 'Kenji Tanaka', 'kenji.tanaka@gmail.com', 'hotel', 'Hotel guest · Room 809'),
   p('sofia', 'Sofia Alvarez', 'sofia.alvarez@gmail.com', 'hotel', 'Hotel guest · Room 805'),
+  p('maya', 'Maya Chen', 'maya@chenfamily.home', 'demo', 'Family · kid, 9'),
+  p('leo', 'Leo Chen', 'leo@chenfamily.home', 'demo', 'Family · kid, 13'),
 ]
 
 export const personaById = (key: string) => DEMO_PERSONAS.find((x) => x.key === key)

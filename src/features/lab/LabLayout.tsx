@@ -37,7 +37,10 @@ export function LabLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/office" className="hidden text-[13px] text-muted hover:text-ink md:inline">
+            <Link to="/apps" className="hidden text-[13px] text-muted hover:text-ink md:inline">
+              Apps
+            </Link>
+            <Link to="/office" className="hidden px-2 text-[13px] text-muted hover:text-ink md:inline">
               Office
             </Link>
             <Link to="/hotel" className="hidden px-2 text-[13px] text-muted hover:text-ink md:inline">

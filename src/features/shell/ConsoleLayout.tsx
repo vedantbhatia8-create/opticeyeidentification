@@ -155,6 +155,7 @@ function SiteSwitcher({ product, siteName }: { product: 'office' | 'hotel'; site
               { to: '/office', label: 'Meridian HQ', sub: 'Office access', key: 'office' },
               { to: '/hotel', label: 'The Linden', sub: 'Hotel access', key: 'hotel' },
               { to: '/lab', label: 'Optic Sensor Lab', sub: 'Enroll & authenticate', key: 'lab' },
+              { to: '/apps', label: 'Optic Apps', sub: 'Vault, Eyes-Only, Guard, Family…', key: 'apps' },
             ].map((s) => (
               <Link
                 key={s.key}

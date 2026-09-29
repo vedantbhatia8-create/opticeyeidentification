@@ -293,7 +293,13 @@ function ResultCard({
           <div className={cx('mt-1 text-[13px] font-semibold tracking-[0.14em] uppercase', color)}>{decision.title}</div>
         )}
         <div className="mt-2 max-w-[340px] text-[14px] leading-relaxed text-white/65">
-          {granted && verified && !decision.resource ? `Welcome, ${verified.identity.name}. ${decision.detail}` : granted ? `Welcome, ${verified?.identity.name.split(' ')[0]}.` : decision.detail}
+          {granted && verified && !decision.resource
+            ? `Welcome, ${verified.identity.name}. ${decision.detail}`
+            : granted && decision.resource && decision.detail !== decision.resource.name
+              ? decision.detail
+              : granted
+                ? `Welcome, ${verified?.identity.name.split(' ')[0]}.`
+                : decision.detail}
         </div>
         {window && (principalKind === 'guest' || principalKind === 'visitor') && (
           <div className="mt-4 rounded-full border border-white/10 px-3 py-1 font-mono text-[11px] tracking-[0.1em] text-white/60">
