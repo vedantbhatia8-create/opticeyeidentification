@@ -72,7 +72,7 @@ interface Actions {
   resetAll(): void
 }
 
-const SCHEMA = 6
+const SCHEMA = 7
 const RELOCK_MS = 6000
 
 function freshState(): Omit<State, 'settings' | 'demo'> {
@@ -92,7 +92,7 @@ function freshState(): Omit<State, 'settings' | 'demo'> {
 }
 
 const defaultSettings: Settings = {
-  theme: 'light',
+  theme: 'dark',
   sensorKind: 'webcam',
   acceptDistance: DEFAULT_MATCH_POLICY.acceptDistance,
   showDiagnostics: false,
@@ -273,11 +273,12 @@ export const useStore = create<State & Actions>()(
       version: SCHEMA,
       partialize: ({ unlocked: _u, ...rest }) => rest,
       migrate: (persisted, version) => {
-        // 5 → 6: only the match threshold changed (0.50 → stricter default); keep all data.
-        if (version === 5 && persisted && typeof persisted === 'object') {
+        // 5 → 6: stricter match threshold. 6 → 7: new dark-first look. Both keep all data.
+        if ((version === 5 || version === 6) && persisted && typeof persisted === 'object') {
           const p = persisted as State
           const acceptDistance = p.settings.acceptDistance >= 0.5 ? defaultSettings.acceptDistance : p.settings.acceptDistance
-          return { ...p, schema: SCHEMA, settings: { ...p.settings, acceptDistance } } as unknown as State & Actions
+          const theme = p.settings.theme === 'light' ? 'dark' : p.settings.theme
+          return { ...p, schema: SCHEMA, settings: { ...p.settings, acceptDistance, theme } } as unknown as State & Actions
         }
         return { ...freshState(), settings: defaultSettings, demo: defaultDemo } as unknown as State & Actions
       },

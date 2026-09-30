@@ -18,7 +18,7 @@ const buttonBase =
   'inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap rounded-lg transition-[background,color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 const buttonVariants: Record<ButtonVariant, string> = {
   primary: 'bg-ink text-bg hover:bg-ink/85 shadow-[var(--shadow-card)]',
-  accent: 'bg-accent text-white hover:bg-accent/90 shadow-[var(--shadow-card)]',
+  accent: 'bg-accent text-accent-contrast hover:bg-accent/90 shadow-[var(--shadow-card),var(--glow)]',
   secondary: 'bg-surface text-ink border border-line hover:bg-surface-2 hover:border-line-strong shadow-[var(--shadow-card)]',
   ghost: 'text-muted hover:text-ink hover:bg-surface-2',
   danger: 'bg-surface text-bad border border-line hover:bg-bad-soft hover:border-bad/30',
