@@ -63,7 +63,7 @@ export function FamilyApp() {
                 icon={<Plus className="size-4" />}
                 onClick={() => {
                   const id = newSuiteId('fam')
-                  upsert({ id, name: 'New member', role: 'kid', identityId: null, accent: ACCENTS[3], theme: 'light', dailyMinutes: 60, schedule: { type: 'weekly', days: [0, 1, 2, 3, 4, 5, 6], start: '08:00', end: '19:00' }, apps: ['khan', 'pbs'], paused: false })
+                  upsert({ id, name: 'New member', role: 'kid', identityId: null, accent: ACCENTS[3], theme: 'dark', dailyMinutes: 60, schedule: { type: 'weekly', days: [0, 1, 2, 3, 4, 5, 6], start: '08:00', end: '19:00' }, apps: ['khan', 'pbs'], paused: false })
                   setParams({ open: id })
                 }}
                 data-testid="family-add"
@@ -87,7 +87,7 @@ export function FamilyApp() {
             variant="primary"
             icon={<UserPlus className="size-3.5" />}
             onClick={() =>
-              upsert({ id: newSuiteId('fam'), name: session.name?.split(' ')[0] ?? 'Parent', role: 'parent', identityId: session.identityId, accent: ACCENTS[0], theme: 'light', dailyMinutes: 0, schedule: { type: 'always' }, apps: [], paused: false })
+              upsert({ id: newSuiteId('fam'), name: session.name?.split(' ')[0] ?? 'Parent', role: 'parent', identityId: session.identityId, accent: ACCENTS[0], theme: 'dark', dailyMinutes: 0, schedule: { type: 'always' }, apps: [], paused: false })
             }
             data-testid="family-join"
           >

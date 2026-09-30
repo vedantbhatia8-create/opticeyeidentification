@@ -102,6 +102,16 @@ export const KID_APPS: KidApp[] = [
 ]
 
 export const ACCENTS = ['#54d6ff', '#8b6dff', '#34e0a1', '#ff5fa8', '#ffbf5a', '#5f8bff', '#e9f0fa']
+/** Pre-redesign profile colors and their closest match in the current palette. */
+const LEGACY_ACCENTS: Record<string, string> = {
+  '#2f5bea': '#54d6ff',
+  '#0f8a6a': '#34e0a1',
+  '#e0457b': '#ff5fa8',
+  '#8b5cf6': '#8b6dff',
+  '#e0852b': '#ffbf5a',
+  '#0ea5b7': '#54d6ff',
+  '#111214': '#e9f0fa',
+}
 
 /** Starts empty: family profiles and attendance lists are built from real accounts. */
 function seed() {
@@ -184,7 +194,20 @@ export const useSuite = create<SuiteState>()(
         }),
       reset: () => set({ ...seed(), usage: {}, bonus: {}, focus: [], prefs: {}, events: [] }),
     }),
-    { name: 'optic-suite', version: 1 },
+    {
+      name: 'optic-suite',
+      version: 2,
+      // v1 → v2: the redesign's palette and dark-first look. Keep all data, remap colors.
+      migrate: (persisted) => {
+        const s = persisted as Partial<SuiteState>
+        const color = (c?: string) => (c && LEGACY_ACCENTS[c.toLowerCase()]) ?? c
+        return {
+          ...s,
+          family: (s.family ?? []).map((m) => ({ ...m, accent: color(m.accent) ?? ACCENTS[0], theme: 'dark' as const })),
+          prefs: Object.fromEntries(Object.entries(s.prefs ?? {}).map(([id, p]) => [id, { ...p, accent: color(p.accent) ?? ACCENTS[0], theme: 'dark' as const }])),
+        } as SuiteState
+      },
+    },
   ),
 )
 

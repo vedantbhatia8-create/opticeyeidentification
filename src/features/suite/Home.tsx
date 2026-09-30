@@ -1,4 +1,4 @@
-import { ArrowRight, Moon, Palette, Sun } from 'lucide-react'
+import { ArrowRight, Palette } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { isSameDay, timeAgo } from '../../ui/format'
@@ -6,7 +6,6 @@ import { Badge, Card, CardHeader, cx, EmptyState } from '../../ui/primitives'
 import { useIdentities } from '../sensor/hooks'
 import { SUITE_APPS } from './apps'
 import { listDocs, type OpticDoc } from './secure'
-import { useStore } from '../../state/store'
 import { ACCENTS, dayKey, useSession, useSuite } from './store'
 
 function greeting() {
@@ -26,8 +25,7 @@ export function SuiteHome() {
   const prefs = suite.prefs[me]
   const member = suite.family.find((m) => m.identityId === me)
   const accent = prefs?.accent ?? member?.accent ?? ACCENTS[0]
-  const globalTheme = useStore((s) => s.settings.theme)
-  const theme = prefs?.theme ?? member?.theme ?? (globalTheme === 'light' ? 'light' : 'dark')
+  const theme = prefs?.theme ?? member?.theme ?? 'dark'
 
   const stats = useMemo(() => {
     const sharedWithMe = docs.filter((d) => d.recipients.includes(me) && d.ownerId !== me && !d.revoked).length
@@ -108,23 +106,7 @@ export function SuiteHome() {
                 ))}
               </div>
             </div>
-            <div>
-              <div className="mb-2 text-[12.5px] font-medium text-muted">Appearance</div>
-              <div className="inline-flex rounded-lg border border-line bg-surface-2 p-0.5">
-                {(['light', 'dark'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => suite.setPrefs(me, { accent, theme: t })}
-                    className={cx(
-                      'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12.5px] font-medium',
-                      theme === t ? 'bg-accent-soft text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_30%,transparent)]' : 'text-muted',
-                    )}
-                  >
-                    {t === 'light' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />} {t === 'light' ? 'Light' : 'Dark'}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <p className="text-[12px] text-subtle">Light or dark: use the sun/moon button in the sidebar.</p>
           </div>
         </Card>
         <Card>

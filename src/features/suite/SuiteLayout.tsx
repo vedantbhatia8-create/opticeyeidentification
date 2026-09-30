@@ -11,7 +11,7 @@ import { SideNavContent, sideNavClass } from '../shell/ConsoleLayout'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { SUITE_NAV } from './apps'
 import { usePresence, type PresenceState } from './presence'
-import { useSession, useSuite } from './store'
+import { ACCENTS, useSession, useSuite } from './store'
 import { lockAllVaults } from './VaultApp'
 
 /** Applies the signed-in person's profile (accent + theme) while inside the apps. */
@@ -27,26 +27,24 @@ function isLight(hex: string) {
 function useProfileTheme(identityId: string | null) {
   const prefs = useSuite((s) => (identityId ? s.prefs[identityId] : undefined))
   const member = useSuite((s) => s.family.find((m) => identityId && m.identityId === identityId))
-  const accent = prefs?.accent ?? member?.accent
-  const theme = prefs?.theme ?? member?.theme
+  // Only colors from the current palette apply; appearance (light/dark) follows the site toggle.
+  const picked = prefs?.accent ?? member?.accent
+  const accent = picked && ACCENTS.includes(picked) ? picked : undefined
   useLayoutEffect(() => {
     const root = document.documentElement
-    const hadDark = root.classList.contains('dark')
     if (accent) {
       root.style.setProperty('--accent', accent)
       root.style.setProperty('--accent-text', accent)
       root.style.setProperty('--accent-soft', `color-mix(in srgb, ${accent} 12%, var(--surface))`)
       root.style.setProperty('--accent-contrast', isLight(accent) ? '#021018' : '#ffffff')
     }
-    if (theme) root.classList.toggle('dark', theme === 'dark')
     return () => {
       root.style.removeProperty('--accent')
       root.style.removeProperty('--accent-text')
       root.style.removeProperty('--accent-soft')
       root.style.removeProperty('--accent-contrast')
-      root.classList.toggle('dark', hadDark)
     }
-  }, [accent, theme])
+  }, [accent])
 }
 
 export function SuiteLayout() {
