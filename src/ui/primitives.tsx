@@ -15,18 +15,18 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap rounded-lg transition-[background,color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+  'inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap rounded-xl transition-[background,color,box-shadow,border-color,transform,filter] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-bg hover:bg-ink/85 shadow-[var(--shadow-card)]',
-  accent: 'bg-accent text-accent-contrast hover:bg-accent/90 shadow-[var(--shadow-card),var(--glow)]',
-  secondary: 'bg-surface text-ink border border-line hover:bg-surface-2 hover:border-line-strong shadow-[var(--shadow-card)]',
-  ghost: 'text-muted hover:text-ink hover:bg-surface-2',
-  danger: 'bg-surface text-bad border border-line hover:bg-bad-soft hover:border-bad/30',
+  primary: 'btn-glow font-semibold',
+  accent: 'btn-glow font-semibold',
+  secondary: 'panel text-ink hover:border-accent/40 hover:bg-surface-2',
+  ghost: 'text-muted hover:text-ink hover:bg-surface-2/80',
+  danger: 'panel text-bad hover:border-bad/40 hover:bg-bad-soft',
 }
 const buttonSizes: Record<ButtonSize, string> = {
   sm: 'h-8 px-3 text-[13px]',
   md: 'h-9 px-3.5 text-sm',
-  lg: 'h-11 px-5 text-[15px]',
+  lg: 'h-11 px-5 text-[15px] rounded-2xl',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -60,7 +60,7 @@ export function buttonClass(variant: ButtonVariant = 'secondary', size: ButtonSi
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={clsx('rounded-xl border border-line bg-surface shadow-[var(--shadow-card)]', className)}
+      className={clsx('panel rounded-2xl', className)}
       {...rest}
     />
   )
@@ -80,7 +80,7 @@ export function CardHeader({
   return (
     <div className={clsx('flex items-start justify-between gap-4 px-5 pt-4 pb-3', className)}>
       <div className="min-w-0">
-        <h3 className="text-[14px] font-semibold tracking-tight text-ink">{title}</h3>
+        <h3 className="text-[14.5px] font-semibold tracking-tight text-ink">{title}</h3>
         {description && <p className="mt-0.5 text-[13px] text-muted">{description}</p>}
       </div>
       {action}
@@ -90,11 +90,11 @@ export function CardHeader({
 
 export type Tone = 'neutral' | 'ok' | 'bad' | 'warn' | 'accent'
 const tones: Record<Tone, string> = {
-  neutral: 'bg-surface-2 text-muted border-line',
-  ok: 'bg-ok-soft text-ok border-ok/15',
-  bad: 'bg-bad-soft text-bad border-bad/15',
-  warn: 'bg-warn-soft text-warn border-warn/20',
-  accent: 'bg-accent-soft text-accent-text border-accent/15',
+  neutral: 'bg-surface-2/80 text-muted border-line',
+  ok: 'bg-ok-soft text-ok border-ok/25 shadow-[0_0_14px_-6px_var(--ok)]',
+  bad: 'bg-bad-soft text-bad border-bad/25 shadow-[0_0_14px_-6px_var(--bad)]',
+  warn: 'bg-warn-soft text-warn border-warn/25',
+  accent: 'bg-accent-soft text-accent-text border-accent/25 shadow-[0_0_14px_-6px_var(--accent)]',
 }
 
 export function Badge({
@@ -111,7 +111,7 @@ export function Badge({
   return (
     <span
       className={clsx(
-        'inline-flex h-[22px] items-center gap-1.5 rounded-md border px-1.5 text-[12px] font-medium whitespace-nowrap',
+        'inline-flex h-[22px] items-center gap-1.5 rounded-full border px-2 text-[11.5px] font-medium tracking-[0.01em] whitespace-nowrap',
         tones[tone],
         className,
       )}
@@ -130,7 +130,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={clsx(
-        'h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink placeholder:text-subtle shadow-[var(--shadow-card)] transition outline-none focus:border-accent/60 focus:ring-3 focus:ring-accent/15',
+        'h-9 w-full rounded-xl border border-line bg-surface-2/70 px-3 text-sm text-ink placeholder:text-subtle transition outline-none focus:border-accent/60 focus:bg-surface-2 focus:ring-3 focus:ring-accent/15 focus:shadow-[var(--glow)]',
         className,
       )}
       {...rest}
@@ -142,7 +142,7 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
   return (
     <select
       className={clsx(
-        'h-9 w-full appearance-none rounded-lg border border-line bg-surface bg-[length:16px] bg-[right_10px_center] bg-no-repeat px-3 pr-8 text-sm text-ink shadow-[var(--shadow-card)] outline-none focus:border-accent/60 focus:ring-3 focus:ring-accent/15',
+        'h-9 w-full appearance-none rounded-xl border border-line bg-surface-2/70 bg-[length:16px] bg-[right_10px_center] bg-no-repeat px-3 pr-8 text-sm text-ink outline-none focus:border-accent/60 focus:ring-3 focus:ring-accent/15',
         "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9da3' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]",
         className,
       )}
@@ -168,7 +168,7 @@ export function Field({
 }) {
   return (
     <label className={clsx('block', className)}>
-      <span className="mb-1.5 block text-[13px] font-medium text-ink">{label}</span>
+      <span className="mb-1.5 block text-[12.5px] font-medium text-muted">{label}</span>
       {children}
       {error ? (
         <span className="mt-1.5 block text-[12px] text-bad">{error}</span>
@@ -197,12 +197,13 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       className={clsx(
         'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors',
-        checked ? 'bg-accent' : 'bg-surface-3 border border-line',
+        checked ? 'bg-accent shadow-[var(--glow)]' : 'bg-surface-3 border border-line',
       )}
     >
       <span
         className={clsx(
-          'inline-block size-4 rounded-full bg-white shadow transition-transform',
+          'inline-block size-4 rounded-full shadow transition-transform',
+          checked ? 'bg-[var(--accent-contrast)]' : 'bg-white/90',
           checked ? 'translate-x-[18px]' : 'translate-x-0.5',
         )}
       />
@@ -211,12 +212,12 @@ export function Toggle({
 }
 
 const AVATAR_TONES = [
-  'bg-[#e8eefc] text-[#2f4fb8]',
-  'bg-[#e6f4ee] text-[#17714a]',
-  'bg-[#fbeee4] text-[#a2531b]',
-  'bg-[#f2eafb] text-[#6b3fb0]',
-  'bg-[#e6f2f6] text-[#1d6a84]',
-  'bg-[#fbe9ee] text-[#a8304f]',
+  'bg-[#54d6ff]/15 text-[#0a7fb0] dark:text-[#8fe4ff] ring-1 ring-[#54d6ff]/30',
+  'bg-[#8b6dff]/15 text-[#5b3fd6] dark:text-[#b9a6ff] ring-1 ring-[#8b6dff]/30',
+  'bg-[#34e0a1]/15 text-[#0f8a5a] dark:text-[#7ef0c4] ring-1 ring-[#34e0a1]/30',
+  'bg-[#ffbf5a]/15 text-[#9a5a00] dark:text-[#ffd699] ring-1 ring-[#ffbf5a]/30',
+  'bg-[#ff5fa8]/15 text-[#b3246a] dark:text-[#ff9fcb] ring-1 ring-[#ff5fa8]/30',
+  'bg-[#5f8bff]/15 text-[#2f5bea] dark:text-[#a3bcff] ring-1 ring-[#5f8bff]/30',
 ]
 
 export function initials(name: string) {
@@ -234,7 +235,7 @@ export function Avatar({ name, size = 32, className }: { name: string; size?: nu
   return (
     <span
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold dark:brightness-90 dark:saturate-150',
+        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold',
         AVATAR_TONES[h % AVATAR_TONES.length],
         className,
       )}
@@ -260,7 +261,7 @@ export function EmptyState({
 }) {
   return (
     <div className={clsx('flex flex-col items-center justify-center px-6 py-14 text-center', className)}>
-      <div className="mb-4 flex size-11 items-center justify-center rounded-xl border border-line bg-surface-2 text-muted">
+      <div className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-accent/25 bg-accent-soft text-accent shadow-[var(--glow)]">
         {icon}
       </div>
       <h3 className="text-[15px] font-semibold text-ink">{title}</h3>
@@ -273,13 +274,13 @@ export function EmptyState({
 export function StatusDot({ tone, pulse }: { tone: Tone; pulse?: boolean }) {
   const color = { neutral: 'text-subtle', ok: 'text-ok', bad: 'text-bad', warn: 'text-warn', accent: 'text-accent' }[tone]
   return (
-    <span className={clsx('inline-block size-2 rounded-full bg-current', color, pulse && 'live-dot')} aria-hidden />
+    <span className={clsx('inline-block size-2 rounded-full bg-current shadow-[0_0_8px_currentColor]', color, pulse && 'live-dot')} aria-hidden />
   )
 }
 
 export function SectionLabel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clsx('text-[11px] font-semibold tracking-[0.08em] text-subtle uppercase', className)}>
+    <div className={clsx('font-mono text-[10.5px] font-medium tracking-[0.18em] text-subtle uppercase', className)}>
       {children}
     </div>
   )

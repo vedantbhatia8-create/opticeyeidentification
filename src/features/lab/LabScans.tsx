@@ -7,6 +7,7 @@ import type { OpticTemplate } from '../../core/biometric/types'
 import type { Identity, OpticScan } from '../../core/identity/types'
 import { identityService } from '../../state/services'
 import { useStore } from '../../state/store'
+import { useSuite } from '../suite/store'
 import { formatBytes, formatDateTime, timeAgo } from '../../ui/format'
 import { Modal } from '../../ui/overlay'
 import { Avatar, Badge, Button, buttonClass, Card, EmptyState, Input, cx } from '../../ui/primitives'
@@ -14,14 +15,17 @@ import { useIdentities } from '../sensor/hooks'
 
 type Filter = 'real' | 'demo' | 'all'
 
+/** Where an identity is used across the apps (family profile, attendance rosters). */
 export function useIdentityLinks() {
-  const office = useStore((s) => s.office)
-  const hotel = useStore((s) => s.hotel)
-  return (identityId: string) => [
-    ...office.employees.filter((e) => e.identityId === identityId).map((e) => `Employee · ${e.department}`),
-    ...office.visitors.filter((v) => v.identityId === identityId).map((v) => `Visitor · ${v.company}`),
-    ...hotel.guests.filter((g) => g.identityId === identityId).map((g) => `Guest · Room ${g.roomNumber}`),
-  ]
+  const family = useSuite((s) => s.family)
+  const attendance = useSuite((s) => s.attendance)
+  return (identityId: string) => {
+    const rosters = attendance.filter((e) => e.roster.includes(identityId)).length
+    return [
+      ...family.filter((m) => m.identityId === identityId).map((m) => `Family · ${m.role}`),
+      ...(rosters ? [`Attendance · ${rosters} roster${rosters === 1 ? '' : 's'}`] : []),
+    ]
+  }
 }
 
 export function LabScans() {
@@ -49,7 +53,7 @@ export function LabScans() {
     <div className="mx-auto max-w-6xl px-5 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-ink">Optic scans</h1>
+          <h1 className="text-[32px] leading-tight font-semibold tracking-[-0.03em] text-ink">Optic scans</h1>
           <p className="mt-1.5 max-w-2xl text-[14px] text-muted">
             Each scan is one enrollment: an encrypted template built from guided samples. Name scans to tell them apart
             — e.g. “Desk · daylight” or “With glasses”. An identity matches if any of its scans match.

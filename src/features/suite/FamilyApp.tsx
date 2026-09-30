@@ -227,7 +227,7 @@ function MemberEditor({ m, onClose }: { m: FamilyMember; onClose: () => void }) 
                         <button
                           key={i}
                           onClick={() => setSchedule({ ...weekly, days: on ? weekly.days.filter((x) => x !== i) : [...weekly.days, i] })}
-                          className={cx('size-8 rounded-lg border text-[12px] font-semibold', on ? 'border-ink bg-ink text-bg' : 'border-line text-muted')}
+                          className={cx('size-8 rounded-lg border text-[12px] font-semibold', on ? 'border-accent/50 bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'border-line text-muted')}
                         >
                           {d}
                         </button>

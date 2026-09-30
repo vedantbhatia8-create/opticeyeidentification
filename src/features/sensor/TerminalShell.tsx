@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
+import { Backdrop } from '../../ui/Backdrop'
 import { LogoMark } from '../../ui/Logo'
 
 export function TerminalClock({ className }: { className?: string } = {}) {
@@ -30,15 +31,12 @@ export function TerminalShell({
   topRight?: ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-term text-white" style={{ colorScheme: 'dark' }}>
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{ background: 'radial-gradient(60% 50% at 50% 0%, rgba(124,192,255,0.06), transparent 70%)' }}
-      />
+    <div className="dark relative isolate min-h-screen bg-term text-white" style={{ colorScheme: 'dark' }}>
+      <Backdrop />
       <header className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-8 sm:py-6">
         <div className="flex items-center gap-3">
-          <LogoMark className="size-6 text-white [--logo-fg:#050607]" />
-          <span className="hidden font-mono text-[12px] font-medium tracking-[0.34em] whitespace-nowrap text-white/85 sm:inline">OPTIC ACCESS</span>
+          <LogoMark className="size-7 text-accent drop-shadow-[0_0_12px_rgba(84,214,255,0.5)] [--logo-fg:#04060a]" />
+          <span className="hidden font-mono text-[12px] font-medium tracking-[0.34em] whitespace-nowrap text-white/85 sm:inline">OPTIC</span>
         </div>
         <div className="truncate text-center font-mono text-[11px] tracking-[0.24em] text-white/60 uppercase sm:text-[12px] sm:tracking-[0.3em]" data-testid="terminal-location">
           {location}
@@ -50,7 +48,7 @@ export function TerminalShell({
           </span>
           <Link
             to={exitTo}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/55 transition hover:border-white/25 hover:text-white"
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[12px] text-white/60 transition hover:border-accent/50 hover:text-white"
           >
             <X className="size-3.5" /> Exit
           </Link>

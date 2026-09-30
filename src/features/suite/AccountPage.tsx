@@ -1,4 +1,4 @@
-import { AlertTriangle, Building2, CalendarCheck2, Check, EyeOff, Fingerprint, Hotel, KeyRound, Merge, Pencil, Plus, Target, Trash2, Users, X } from 'lucide-react'
+import { AlertTriangle, CalendarCheck2, Check, EyeOff, Fingerprint, KeyRound, Merge, Pencil, Plus, Target, Trash2, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { normalizeEmail } from '../../core/identity/IdentityService'
@@ -26,8 +26,6 @@ export function AccountPage() {
   const { identities, scans } = useIdentities()
   const account = identities.find((i) => i.id === me)
   const myScans = scans.filter((s) => s.identityId === me)
-  const office = useStore((s) => s.office)
-  const hotel = useStore((s) => s.hotel)
   const suite = useSuite()
   const [records, setRecords] = useState({ hasVault: false, vaultItems: 0, docsOwned: 0, docsShared: 0 })
   const [editing, setEditing] = useState(false)
@@ -53,9 +51,6 @@ export function AccountPage() {
 
   if (!account) return null
 
-  const employee = office.employees.find((e) => e.identityId === me)
-  const visits = office.visitors.filter((v) => v.identityId === me)
-  const stays = hotel.guests.filter((g) => g.identityId === me)
   const member = suite.family.find((m) => m.identityId === me)
   const focus = suite.focus.filter((f) => f.identityId === me)
   const checkins = suite.checkins.filter((c) => c.identityId === me)
@@ -103,8 +98,6 @@ export function AccountPage() {
     { icon: Target, label: 'Focus', value: `${focus.length} session${focus.length === 1 ? '' : 's'}`, to: '/apps/focus' },
     { icon: CalendarCheck2, label: 'Attendance', value: `${checkins.length} check-in${checkins.length === 1 ? '' : 's'}`, to: '/apps/attendance' },
     { icon: Users, label: 'Family', value: member ? `${member.role === 'parent' ? 'Parent' : 'Kid'} · ${member.name}` : 'Not in a family', to: '/apps/family' },
-    { icon: Building2, label: 'Office', value: employee ? `${employee.role} · ${employee.department}` : visits.length ? `Visitor · ${visits[0].company}` : 'Not linked', to: '/office/people' },
-    { icon: Hotel, label: 'Hotel', value: stays.length ? `Room ${stays[0].roomNumber} · ${stays[0].status.replace('-', ' ')}` : 'No stays', to: '/hotel/guests' },
   ]
 
   return (
@@ -249,7 +242,7 @@ export function AccountPage() {
           </>
         }
       >
-        <p className="text-[13px] text-muted">Office, hotel and family links to this account are removed too.</p>
+        <p className="text-[13px] text-muted">Family profiles and roster entries for this account are removed too.</p>
       </Modal>
     </>
   )

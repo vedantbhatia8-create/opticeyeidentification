@@ -1,6 +1,6 @@
-# Optic Access
+# Optic
 
-**Your identity is the key.** A working prototype of identity-based physical access: look at a sensor, get verified, and the door opens if you're allowed in. It includes an office deployment (employees, doors, schedules, visitors) and a hotel deployment (guests, rooms, stays, check-out). Both run on the same access engine.
+**One look. Everything unlocks.** Optic turns your eyes into a single account for a suite of apps: a password vault, eyes-only documents, a screen guard, family screen time, focus sessions and attendance. The same identity engine can also run physical access (office doors, hotel rooms); those demos live only at `/office` and `/hotel`.
 
 > **Prototype notice.** The prototype uses an ordinary webcam instead of dedicated near-infrared iris hardware. It demonstrates the product flow and the architecture. It is **not** production-grade biometric security and has no presentation-attack (spoof) detection.
 
@@ -17,13 +17,11 @@ Camera access only works on `http://localhost` or `https://`. Use a recent Chrom
 
 | Where | What |
 | --- | --- |
-| `/` | Platform overview with sign up / log in |
-| `/demo` | Guided walkthrough (one click per scenario) |
-| `/lab` | **Phase 1:** Optic Sensor Lab. Enroll, authenticate, and manage named optic scans |
-| `/office` | **Phase 2:** Office console (Meridian HQ) |
-| `/hotel` | **Phase 3:** Hotel console (The Linden) |
-| `/terminal/office/:doorId`, `/terminal/hotel/:roomId` | Full-screen door terminals with a virtual door |
-| `/apps` | **Optic Apps:** software products on the same identity engine (sign in with a glance) |
+| `/` | Home page: what Optic is, with sign up / log in |
+| `/apps` | **Optic Apps** (the main product; sign in with a glance) |
+| `/demo` | Guided walkthrough: your identity, then every app |
+| `/lab` | Sensor Lab: enroll, authenticate, manage optic scans, look-alike tuning |
+| `/office`, `/hotel` | Stand-alone physical-access demos (consoles and door terminals). Not linked from the rest of the site |
 
 Other commands: `npm test` (unit tests), `npm run typecheck`, `npm run build`, `npm run lint`.
 
@@ -33,10 +31,8 @@ The site starts empty: no built-in people, no fake history. Everyone in it is a 
 
 1. **Sign up** on the home page. Enter your name and email, then follow the five prompts (center, left, right, up, down). That enrollment is your Optic account.
 2. **Log in** with a glance. Anyone who isn't enrolled gets *Identity could not be verified*.
-3. **`/demo`** runs the guided walkthrough with your own eyes:
-   - Office: adds you as an employee, then tries Main Entrance (granted), Server Room (*IDENTITY VERIFIED · ACCESS DENIED*) and 11 PM (outside hours).
-   - Hotel: checks you in to Room 814 (granted), tries Room 816 (denied), then checks you out (*Your hotel stay has ended.*).
-4. **Demo people** (switch on `/demo`, in the Demo Mode panel, or in console Settings). On: adds a made-up cast (Sarah Chen, the Chen family, Emma Johnson and others) with synthetic scans, office and hotel records, family profiles, attendance lists and a day of history, plus extra walkthrough steps. Off: removes all of it, leaving only people who actually signed up.
+3. **`/demo`** runs the guided walkthrough with your own eyes: authenticate, test a stranger, tune look-alikes, then open each app.
+4. **Demo people** (switch on `/demo` or in the Demo Mode panel). On: adds a made-up cast (the Chen family and others) with synthetic scans, family profiles, attendance lists and history, plus extra walkthrough steps (Maya at the family screen, Maya checking in). Off: removes all of it, leaving only people who actually signed up.
 5. **Unknown Person** (Demo Mode, bottom-right) swaps in a never-enrolled stranger's features, so you can show a rejection without a second person.
 
 No camera? Choose **Simulated (no camera)** in Demo Mode.
@@ -122,4 +118,8 @@ Identity, authorization, access control and the UI stay unchanged. Templates are
   - enrollment → the genuine user is recognized (embedding distance ≈ 0.02);
   - three different people are rejected (distance 0.66–0.74; threshold 0.42, runner-up margin 0.06). Look-alikes such as siblings who never enrolled are the main false-accept risk for a webcam; enrolling both people lets the margin rule tell them apart.
   - blocked and missing cameras show recovery screens;
-  - every office and hotel scenario in `/demo` produces the expected decision.
+  - every scenario in `/demo` produces the expected decision.
+
+## Design
+
+Dark-first "optic" theme across every page: deep-space background with a faint grid and cyan/violet glows, translucent panels, gradient hairline borders and glowing primary actions. Only the home page uses blurred, animated glows. Pages that show the camera use plain gradients instead, because blurred animated layers behind live video break video compositing.

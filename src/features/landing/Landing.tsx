@@ -1,8 +1,9 @@
 import { motion, useInView } from 'framer-motion'
-import { AppWindow, ArrowRight, ArrowUpRight, BadgeX, Building2, Check, CreditCard, Hotel, KeyRound, ListChecks, ScanEye, ShieldCheck, Smartphone, UserCog, X } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, EyeOff, KeyRound, ListChecks, ScanEye, ShieldCheck, Smartphone, UserCog, Users } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { seededRandom } from '../../core/biometric/math'
+import { Backdrop } from '../../ui/Backdrop'
 import { LogoMark } from '../../ui/Logo'
 import { cx } from '../../ui/primitives'
 import { PRINCIPLES } from '../shell/SharedPages'
@@ -19,7 +20,7 @@ export function Landing() {
   const signedIn = !!session.identityId
   return (
     <div className="dark relative min-h-screen overflow-x-clip bg-bg text-ink">
-      <Backdrop />
+      <Backdrop variant="hero" />
 
       <nav className="sticky top-3 z-40 px-3 sm:top-4">
         <div className="glass mx-auto flex h-14 max-w-5xl items-center justify-between rounded-2xl pr-2 pl-4">
@@ -28,9 +29,9 @@ export function Landing() {
             <span className="text-[15px] font-semibold tracking-tight">Optic</span>
           </Link>
           <div className="hidden items-center gap-7 text-[13px] text-muted md:flex">
-            <a href="#platform" className="transition hover:text-ink">Platform</a>
-            <a href="#how" className="transition hover:text-ink">How it works</a>
             <a href="#apps" className="transition hover:text-ink">Apps</a>
+            <a href="#how" className="transition hover:text-ink">How it works</a>
+            <a href="#glance" className="transition hover:text-ink">Glance</a>
             <a href="#security" className="transition hover:text-ink">Security</a>
             <Link to="/demo" className="transition hover:text-ink">Demo</Link>
           </div>
@@ -62,7 +63,7 @@ export function Landing() {
           transition={{ duration: 0.8, ease: EASE }}
         >
           <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] tracking-[0.1em] whitespace-nowrap text-muted uppercase sm:text-[11px] sm:tracking-[0.18em]">
-            <span className="live-dot size-1.5 rounded-full bg-accent text-accent" /> One identity · doors · rooms · apps
+            <span className="live-dot size-1.5 rounded-full bg-accent text-accent" /> One look · six apps
           </span>
           <h1 className="mt-7 text-[46px] leading-[0.98] font-semibold tracking-[-0.045em] sm:text-[80px]">
             <span className="text-gradient">One look.</span>
@@ -70,9 +71,8 @@ export function Landing() {
             Everything unlocks.
           </h1>
           <p className="mx-auto mt-6 max-w-[600px] text-[16.5px] leading-relaxed text-muted sm:text-[18px]">
-            Optic turns your eyes into a single account. It opens office doors and hotel rooms, and signs you in to
-            passwords, private documents, screen guard, family screen time, focus and attendance. No badges, keys or
-            passwords.
+            Optic turns your eyes into a single account for your apps: passwords, private documents, a screen that
+            guards itself, family screen time, focus and attendance. Nothing to remember, nothing to type.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             {signedIn ? (
@@ -125,107 +125,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Platform */}
-      <Section id="platform" index="01" eyebrow="The platform" title="One Optic account. Three ways to use it.">
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            { icon: Building2, title: 'Optic for Offices', body: 'Employees and visitors walk in with a glance. Groups, schedules, time-boxed visits, lockdown and a full audit trail.', to: '/office', cta: 'Office console' },
-            { icon: Hotel, title: 'Optic for Hotels', body: 'Check-in links a guest to their room for the exact dates of the stay. Check-out revokes access instantly.', to: '/hotel', cta: 'Hotel console' },
-            { icon: AppWindow, title: 'Optic Apps', body: `${SUITE_APPS.map((a) => a.name).join(', ')}. Everyday software that knows who is at the screen.`, to: '/apps', cta: 'Open apps' },
-          ].map((c) => (
-            <Link key={c.title} to={c.to} className="glass hairline group rounded-3xl p-6 transition duration-300 hover:-translate-y-1">
-              <IconChip icon={<c.icon className="size-5" />} />
-              <div className="mt-6 text-[18px] font-semibold tracking-tight">{c.title}</div>
-              <p className="mt-2 text-[14px] leading-relaxed text-muted">{c.body}</p>
-              <span className="mt-6 flex items-center gap-1 text-[13px] font-medium text-accent-text">
-                {c.cta} <ArrowUpRight className="size-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </span>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          {[
-            ['Sign up once', 'Enroll your eyes with a webcam and your email. That is your whole account.'],
-            ['Everything in one place', 'Scans, door access, stays, vault items and app data all live under that one account.'],
-            ['Private by design', 'Encrypted templates stay on your device. No video is stored and no data leaves the browser.'],
-          ].map(([t, b]) => (
-            <div key={t} className="rounded-3xl border border-line/80 p-5">
-              <div className="flex items-center gap-2 text-[14px] font-semibold"><Check className="size-4 text-accent" /> {t}</div>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{b}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* Problem */}
-      <Section id="problem" index="02" eyebrow="The problem" title="Anything you carry can be handed to someone else.">
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {[
-            { icon: CreditCard, title: 'Badges get shared', body: 'Lent, cloned, tailgated, forgotten at home.' },
-            { icon: KeyRound, title: 'Keys get copied', body: 'Re-keying a door after a lost key is slow and costly.' },
-            { icon: Smartphone, title: 'Codes get passed on', body: 'A PIN knows nothing about who typed it.' },
-            { icon: BadgeX, title: 'Cards outlive stays', body: 'Hotel key cards still work until someone re-encodes the lock.' },
-          ].map((c) => (
-            <div key={c.title} className="glass rounded-3xl p-5">
-              <c.icon className="size-5 text-subtle" />
-              <div className="mt-5 text-[15px] font-semibold">{c.title}</div>
-              <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{c.body}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* How */}
-      <Section id="how" index="03" eyebrow="How Optic works" title="Look. Verify. Authorize. Open.">
-        <div className="relative grid gap-8 md:grid-cols-4 md:gap-4">
-          <div className="pointer-events-none absolute top-[34px] right-[12%] left-[12%] hidden h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent md:block" />
-          {[
-            ['01', 'Sensor', 'The terminal locates your eyes and captures a few samples. Frames are processed on the device and discarded.'],
-            ['02', 'Identity', 'Samples become a numeric template, compared against every enrolled account. Who is this?'],
-            ['03', 'Authorization', 'A separate policy engine checks who → where → when, validity windows and status. May they enter?'],
-            ['04', 'Access', 'The door unlocks, or explains why not. Either way, the attempt is logged.'],
-          ].map(([n, t, b]) => (
-            <div key={n} className="relative">
-              <div className="glass relative z-10 flex size-[68px] items-center justify-center rounded-2xl font-mono text-[15px] text-accent shadow-[var(--glow)]">{n}</div>
-              <div className="mt-5 text-[17px] font-semibold tracking-tight">{t}</div>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-muted">{b}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-8 max-w-3xl text-[13px] text-subtle">
-          The sensor is a replaceable module. This prototype uses a webcam; production terminals would use dedicated
-          near-infrared iris hardware behind the same interface.
-        </p>
-      </Section>
-
-      {/* Offices + hotels */}
-      <Section id="access" index="04" eyebrow="Physical access" title="Doors that know who you are, and when you're allowed.">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <AccessPanel
-            icon={<Building2 className="size-5" />}
-            title="Offices"
-            points={['Access groups and schedules: who → where → when', 'Visitors with time-boxed access that expires on its own', 'Lockdown any door in one click']}
-            to="/office"
-            cta="Open office console"
-          >
-            <DecisionCard name="Employee" place="Main Entrance" granted />
-            <DecisionCard name="Employee" place="Server Room" reason="No permission for this area." />
-          </AccessPanel>
-          <AccessPanel
-            icon={<Hotel className="size-5" />}
-            title="Hotels"
-            points={['Link a guest’s identity to a room at check-in', 'Access follows the exact dates of the stay', 'Check-out revokes access instantly']}
-            to="/hotel"
-            cta="Open hotel console"
-          >
-            <DecisionCard name="Hotel guest" place="Room 814" granted detail="Stay · 3 nights" />
-            <DecisionCard name="Hotel guest" place="Room 814" reason="Your stay has ended." />
-          </AccessPanel>
-        </div>
-      </Section>
-
       {/* Apps */}
-      <Section id="apps" index="05" eyebrow="Optic Apps" title="The same identity engine, in software. No new hardware.">
+      <Section id="apps" index="01" eyebrow="Optic Apps" title="Six apps. One account. Unlocked with a look.">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SUITE_APPS.map((a) => (
             <Link key={a.id} to={a.to} className="glass hairline group rounded-3xl p-5 transition duration-300 hover:-translate-y-1">
@@ -239,10 +140,69 @@ export function Landing() {
             </Link>
           ))}
         </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {[
+            ['Sign up once', 'Enroll your eyes with a webcam and your email. That is your whole account.'],
+            ['Everything in one place', 'Scans, vault items, documents, profiles and history all live under that one account.'],
+            ['Private by design', 'Encrypted templates stay on your device. No video is stored and no data leaves the browser.'],
+          ].map(([t, b]) => (
+            <div key={t} className="rounded-3xl border border-line/80 p-5">
+              <div className="flex items-center gap-2 text-[14px] font-semibold"><Check className="size-4 text-accent" /> {t}</div>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted">{b}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Problem */}
+      <Section id="problem" index="02" eyebrow="The problem" title="Passwords and PINs prove what you know, not who you are.">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {[
+            { icon: KeyRound, title: 'Passwords get reused', body: 'One leak and every account with the same password is open.' },
+            { icon: Smartphone, title: 'PINs get passed on', body: 'A code knows nothing about who typed it.' },
+            { icon: EyeOff, title: 'Screens get seen', body: 'Private messages and documents, read over a shoulder.' },
+            { icon: Users, title: 'Shared devices blur people', body: 'Kids, parents and guests all use the same laptop and the same settings.' },
+          ].map((c) => (
+            <div key={c.title} className="glass rounded-3xl p-5">
+              <c.icon className="size-5 text-subtle" />
+              <div className="mt-5 text-[15px] font-semibold">{c.title}</div>
+              <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* How */}
+      <Section id="how" index="03" eyebrow="How Optic works" title="Look. Verify. Decide. Unlock.">
+        <div className="relative grid gap-8 md:grid-cols-4 md:gap-4">
+          <div className="pointer-events-none absolute top-[34px] right-[12%] left-[12%] hidden h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent md:block" />
+          {[
+            ['01', 'Look', 'Your webcam finds your eyes and captures a few samples. Frames are processed on the device and discarded.'],
+            ['02', 'Verify', 'Samples become a numeric template, compared against every enrolled account. Who is this?'],
+            ['03', 'Decide', 'A policy engine checks whether this person may do this, right now: allowed readers, screen-time windows, check-in times.'],
+            ['04', 'Unlock', 'The app opens, reveals or approves, or explains why not. Either way, it is logged.'],
+          ].map(([n, t, b]) => (
+            <div key={n} className="relative">
+              <div className="glass relative z-10 flex size-[68px] items-center justify-center rounded-2xl font-mono text-[15px] text-accent shadow-[var(--glow)]">{n}</div>
+              <div className="mt-5 text-[17px] font-semibold tracking-tight">{t}</div>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-muted">{b}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Glance moments */}
+      <Section id="glance" index="04" eyebrow="Glance to approve" title="The apps know who is looking, every moment.">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MomentCard app="Vault" action="Reveal password" verdict="Approved" who="Verified · you" ok />
+          <MomentCard app="Eyes-Only" action="Board memo" verdict="Hidden" who="Someone else is looking" />
+          <MomentCard app="Guard" action="You walked away" verdict="Locked" who="Screen locked in 8 s" />
+          <MomentCard app="Family" action="Maya sat down" verdict="Switched" who="Kids launcher · 42 min left" ok />
+        </div>
       </Section>
 
       {/* Security */}
-      <Section id="security" index="06" eyebrow="Security" title="Designed around what not to keep.">
+      <Section id="security" index="05" eyebrow="Security" title="Designed around what not to keep.">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PRINCIPLES.map((p) => (
             <div key={p.title} className="glass rounded-3xl p-5">
@@ -254,9 +214,9 @@ export function Landing() {
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {[
-            { icon: UserCog, title: 'People & permissions', body: 'Add people, link their Optic identity and assign access groups in seconds.' },
-            { icon: ListChecks, title: 'Complete audit trail', body: 'Granted, denied and unrecognized, each with a reason. Export as CSV.' },
-            { icon: ShieldCheck, title: 'Instant revocation', body: 'Suspend, end a visit, check out, lock down. Effective on the very next attempt.' },
+            { icon: UserCog, title: 'You decide who', body: 'Choose readers for each document and profiles for each person. Nothing is shared by default.' },
+            { icon: ListChecks, title: 'Complete audit trail', body: 'Every sign-in, approval and refusal, each with a reason.' },
+            { icon: ShieldCheck, title: 'Instant revocation', body: 'Revoke a document, pause a profile or delete your account. Effective on the very next look.' },
           ].map((c) => (
             <div key={c.title} className="rounded-3xl border border-line/80 p-5">
               <c.icon className="size-5 text-subtle" />
@@ -305,23 +265,6 @@ export function Landing() {
   )
 }
 
-/** Background: blueprint grid plus two slowly drifting glows. */
-function Backdrop() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="grid-bg absolute inset-x-0 top-0 h-[1100px]" />
-      <div
-        className="absolute -top-[260px] left-[8%] size-[620px] rounded-full opacity-40 blur-[120px]"
-        style={{ background: 'var(--accent)', animation: 'optic-drift 18s ease-in-out infinite' }}
-      />
-      <div
-        className="absolute top-[120px] right-[2%] size-[520px] rounded-full opacity-30 blur-[130px]"
-        style={{ background: 'var(--accent-2)', animation: 'optic-drift 22s ease-in-out infinite reverse' }}
-      />
-    </div>
-  )
-}
-
 function IconChip({ icon }: { icon: ReactNode }) {
   return (
     <span className="flex size-11 items-center justify-center rounded-2xl border border-accent/25 bg-accent-soft text-accent shadow-[var(--glow)]">{icon}</span>
@@ -351,46 +294,21 @@ function Section({ id, index, eyebrow, title, children }: { id: string; index: s
   )
 }
 
-function AccessPanel({ icon, title, points, to, cta, children }: { icon: ReactNode; title: string; points: string[]; to: string; cta: string; children: ReactNode }) {
+function MomentCard({ app, action, verdict, who, ok }: { app: string; action: string; verdict: string; who: string; ok?: boolean }) {
   return (
-    <div className="glass hairline rounded-[28px] p-6">
-      <div className="flex items-center gap-3">
-        <IconChip icon={icon} />
-        <div className="text-[19px] font-semibold tracking-tight">{title}</div>
-      </div>
-      <ul className="mt-5 space-y-2.5">
-        {points.map((p) => (
-          <li key={p} className="flex items-start gap-2.5 text-[14px] text-muted">
-            <Check className="mt-0.5 size-4 shrink-0 text-accent" /> {p}
-          </li>
-        ))}
-      </ul>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">{children}</div>
-      <Link to={to} className="mt-6 inline-flex items-center gap-1 text-[13px] font-medium text-accent-text hover:underline">
-        {cta} <ArrowUpRight className="size-3.5" />
-      </Link>
-    </div>
-  )
-}
-
-function DecisionCard({ name, place, granted, reason, detail }: { name: string; place: string; granted?: boolean; reason?: string; detail?: string }) {
-  return (
-    <div className="flex flex-col items-center rounded-2xl border border-white/[0.07] bg-black/40 px-4 py-6 text-center">
+    <div className="glass hairline flex flex-col items-center rounded-3xl px-4 py-7 text-center">
       <div
         className={cx(
-          'flex size-10 items-center justify-center rounded-full border',
-          granted ? 'border-granted/40 bg-granted/10 text-granted shadow-[0_0_24px_-4px_rgba(61,220,151,0.6)]' : 'border-denied/40 bg-denied/10 text-denied shadow-[0_0_24px_-4px_rgba(255,93,93,0.5)]',
+          'flex size-11 items-center justify-center rounded-full border',
+          ok ? 'border-granted/40 bg-granted/10 text-granted shadow-[0_0_24px_-4px_rgba(61,220,151,0.6)]' : 'border-accent/40 bg-accent-soft text-accent shadow-[var(--glow)]',
         )}
       >
-        {granted ? <Check className="size-5" /> : <X className="size-5" />}
+        {ok ? <Check className="size-5" /> : <ScanEye className="size-5" />}
       </div>
-      <div className="mt-4 font-mono text-[9.5px] tracking-[0.24em] text-white/40 uppercase">Identity verified</div>
-      <div className="mt-1 text-[16px] font-semibold text-white">{name}</div>
-      <div className="font-mono text-[10px] tracking-[0.2em] text-white/45 uppercase">{place}</div>
-      <div className={cx('mt-3 font-mono text-[12px] font-medium tracking-[0.16em]', granted ? 'text-granted' : 'text-denied')}>
-        {granted ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
-      </div>
-      {(reason || detail) && <div className="mt-1 text-[11.5px] text-white/50">{reason ?? detail}</div>}
+      <div className="mt-4 font-mono text-[10px] tracking-[0.24em] text-subtle uppercase">Optic {app}</div>
+      <div className="mt-1 text-[15.5px] font-semibold">{action}</div>
+      <div className={cx('mt-3 font-mono text-[12px] font-medium tracking-[0.18em] uppercase', ok ? 'text-granted' : 'text-accent')}>{verdict}</div>
+      <div className="mt-1 text-[12px] text-muted">{who}</div>
     </div>
   )
 }
@@ -399,7 +317,7 @@ const HUD_STAGES = [
   { key: 'locate', label: 'LOCATING EYES' },
   { key: 'capture', label: 'CAPTURING SAMPLES' },
   { key: 'match', label: 'MATCHING TEMPLATE' },
-  { key: 'granted', label: 'ACCESS GRANTED' },
+  { key: 'granted', label: 'UNLOCKED' },
 ] as const
 
 /** Self-running scanner illustration: a large iris with rotating rings and live readouts (no camera). */
@@ -438,7 +356,7 @@ function IrisHud() {
         <span className="flex items-center gap-2">
           <span className="size-1.5 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}` }} /> Optic sensor · live
         </span>
-        <span className="hidden sm:inline">Main entrance · terminal 01</span>
+        <span className="hidden sm:inline">Optic Vault · unlock</span>
       </div>
 
       <div className="relative mt-6 grid items-center gap-6 md:grid-cols-[1fr_auto_1fr]">

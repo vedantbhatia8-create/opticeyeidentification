@@ -6,6 +6,7 @@ import { Badge, Card, CardHeader, cx, EmptyState } from '../../ui/primitives'
 import { useIdentities } from '../sensor/hooks'
 import { SUITE_APPS } from './apps'
 import { listDocs, type OpticDoc } from './secure'
+import { useStore } from '../../state/store'
 import { ACCENTS, dayKey, useSession, useSuite } from './store'
 
 function greeting() {
@@ -25,7 +26,8 @@ export function SuiteHome() {
   const prefs = suite.prefs[me]
   const member = suite.family.find((m) => m.identityId === me)
   const accent = prefs?.accent ?? member?.accent ?? ACCENTS[0]
-  const theme = prefs?.theme ?? member?.theme ?? 'light'
+  const globalTheme = useStore((s) => s.settings.theme)
+  const theme = prefs?.theme ?? member?.theme ?? (globalTheme === 'light' ? 'light' : 'dark')
 
   const stats = useMemo(() => {
     const sharedWithMe = docs.filter((d) => d.recipients.includes(me) && d.ownerId !== me && !d.revoked).length
@@ -51,13 +53,13 @@ export function SuiteHome() {
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="text-[13px] font-medium text-muted">Optic Apps</div>
-          <h1 className="mt-1 text-[28px] font-semibold tracking-tight text-ink" data-testid="suite-greeting">
+          <div className="font-mono text-[11px] tracking-[0.2em] text-accent-text uppercase">Optic Apps</div>
+          <h1 className="mt-1 text-[32px] leading-tight font-semibold tracking-[-0.03em] text-ink sm:text-[38px]" data-testid="suite-greeting">
             {greeting()}, {session.name?.split(' ')[0]}.
           </h1>
           <p className="mt-1 text-[14px] text-muted">One enrollment. Every app knows it’s you — and knows when it isn’t.</p>
         </div>
-        <Badge tone="accent">{enrolledCount} enrolled identities on this device</Badge>
+        <Badge tone="accent">{enrolledCount} enrolled {enrolledCount === 1 ? 'identity' : 'identities'} on this device</Badge>
       </div>
 
       <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -115,7 +117,7 @@ export function SuiteHome() {
                     onClick={() => suite.setPrefs(me, { accent, theme: t })}
                     className={cx(
                       'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12.5px] font-medium',
-                      theme === t ? 'bg-surface text-ink shadow-[var(--shadow-card)]' : 'text-muted',
+                      theme === t ? 'bg-accent-soft text-ink shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_30%,transparent)]' : 'text-muted',
                     )}
                   >
                     {t === 'light' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />} {t === 'light' ? 'Light' : 'Dark'}

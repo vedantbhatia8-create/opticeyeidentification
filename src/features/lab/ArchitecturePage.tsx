@@ -22,38 +22,39 @@ const LAYERS = [
     name: 'Identity',
     path: 'src/core/identity',
     contract: 'IdentityService.enroll / verify(samples) → verified | not-recognized | unable',
-    body: 'Who a template belongs to. Seals templates with AES-GCM in IndexedDB. Knows nothing about doors.',
+    body: 'Who a template belongs to. Seals templates with AES-GCM in IndexedDB. Knows nothing about apps or permissions.',
   },
   {
     n: 4,
     name: 'Authorization',
     path: 'src/core/authorization',
     contract: 'authorize(principal, resource, at) → granted | no-grant | outside-schedule | window-expired | …',
-    body: 'Pure policy engine: who → where → when, validity windows, status, device state. Knows nothing about biometrics.',
+    body: 'Pure policy engine: who → what → when, validity windows and status. Decides document readers, screen time and check-in windows. Knows nothing about biometrics.',
   },
   {
     n: 5,
     name: 'Access control',
     path: 'src/core/access',
     contract: 'AccessController.attempt(samples, SiteAdapter, resourceId) → AccessDecision',
-    body: 'One engine for every deployment. Sites plug in via a SiteAdapter (office, hotel). Actuates the door and writes the audit log.',
+    body: 'One engine for every app. Each plugs in via an adapter (documents, screen time, attendance). Writes the audit log.',
   },
   {
     n: 6,
     name: 'Application / UI',
     path: 'src/features · src/domains',
-    contract: 'React: OpticTerminal, EnrollmentSession, consoles',
-    body: 'Terminals and dashboards. Office and hotel differ only in data model and wording.',
+    contract: 'React: OpticTerminal, EnrollmentSession, Optic Apps',
+    body: 'The apps and the sensor screens. Every app shares the same identity and presence engine.',
   },
 ]
 
 export function ArchitecturePage() {
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
-      <h1 className="text-[28px] font-semibold tracking-tight text-ink">System architecture</h1>
+      <div className="font-mono text-[11px] tracking-[0.2em] text-accent-text uppercase">Sensor Lab</div>
+      <h1 className="mt-3 text-[32px] leading-tight font-semibold tracking-[-0.03em] text-ink">System architecture</h1>
       <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-muted">
         Six layers with one-way dependencies. The sensor can be replaced by dedicated iris hardware without touching
-        anything above it; the office and hotel products share every layer below the UI.
+        anything above it; every app shares every layer below the UI.
       </p>
 
       <div className="mt-8 space-y-2">

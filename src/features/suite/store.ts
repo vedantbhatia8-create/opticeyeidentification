@@ -101,7 +101,7 @@ export const KID_APPS: KidApp[] = [
   { id: 'code', name: 'Code.org', url: 'https://code.org', color: '#e0457b', blurb: 'Learn to code' },
 ]
 
-export const ACCENTS = ['#2f5bea', '#0f8a6a', '#e0457b', '#8b5cf6', '#e0852b', '#0ea5b7', '#111214']
+export const ACCENTS = ['#54d6ff', '#8b6dff', '#34e0a1', '#ff5fa8', '#ffbf5a', '#5f8bff', '#e9f0fa']
 
 /** Starts empty: family profiles and attendance lists are built from real accounts. */
 function seed() {

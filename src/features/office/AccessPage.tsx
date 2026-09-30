@@ -218,7 +218,7 @@ function RuleEditor({ rule, onClose }: { rule: AccessRule | null; onClose: () =>
                       onClick={() => setSchedule({ ...weekly, days: on ? weekly.days.filter((x) => x !== i) : [...weekly.days, i] })}
                       className={cx(
                         'size-8 rounded-lg border text-[12px] font-semibold transition',
-                        on ? 'border-ink bg-ink text-bg' : 'border-line text-muted hover:text-ink',
+                        on ? 'border-accent/50 bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'border-line text-muted hover:text-ink',
                       )}
                     >
                       {d}

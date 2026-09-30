@@ -19,12 +19,10 @@ export function LogoMark({ className }: { className?: string }) {
 export function Logo({ className, product }: { className?: string; product?: string }) {
   return (
     <span className={cx('inline-flex items-center gap-2.5', className)}>
-      <LogoMark className="text-ink [--logo-fg:var(--bg)]" />
-      <span className="text-[15px] font-semibold tracking-tight text-ink">
-        Optic<span className="text-muted"> Access</span>
-      </span>
+      <LogoMark className="text-accent drop-shadow-[0_0_10px_color-mix(in_srgb,var(--accent)_45%,transparent)] [--logo-fg:var(--bg)]" />
+      <span className="text-[15px] font-semibold tracking-tight text-ink">Optic</span>
       {product && (
-        <span className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-muted">
+        <span className="rounded-full border border-accent/25 bg-accent-soft px-2 py-0.5 font-mono text-[10px] font-medium tracking-[0.14em] text-accent-text uppercase">
           {product}
         </span>
       )}

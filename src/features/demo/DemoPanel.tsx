@@ -47,7 +47,7 @@ export function DemoPeopleToggle({ className }: { className?: string }) {
         </div>
         <div className="text-[12px] leading-snug text-muted">
           {on
-            ? `Showing ${DEMO_PERSONAS.length} made-up people (Sarah Chen, Maya Chen, Emma Johnson…) next to real accounts.`
+            ? `Showing ${DEMO_PERSONAS.length} made-up people (the Chen family and others) next to real accounts.`
             : 'Off: only people who actually signed up. Turn on to add Sarah Chen, Maya Chen and the rest of the demo cast.'}
         </div>
       </div>
@@ -70,8 +70,8 @@ export function DemoControls({ compact }: { compact?: boolean }) {
     { id: null, label: 'My real eyes', sub: 'Live webcam biometrics', icon: <Camera className="size-4" /> },
     ...(demoPeople
       ? [
-          { id: personaIdentity('sarah'), label: 'Sarah Chen', sub: 'Employee · Engineering' },
-          { id: personaIdentity('emma'), label: 'Emma Johnson', sub: 'Hotel guest · Room 814' },
+          { id: personaIdentity('maya'), label: 'Maya Chen', sub: 'Family · kid, 9' },
+          { id: personaIdentity('sarah'), label: 'Sarah Chen', sub: 'Family · parent' },
         ]
       : []),
     { id: 'unknown', label: 'Unknown Person', sub: 'Never enrolled', icon: <UserX className="size-4" /> },
@@ -186,7 +186,7 @@ export function DemoControls({ compact }: { compact?: boolean }) {
               )
             })}
           </div>
-          <p className="mt-2 text-[11.5px] text-subtle">Shift time to show schedules and visitor expiry.</p>
+          <p className="mt-2 text-[11.5px] text-subtle">Shift time to test schedules: screen-time hours, check-in windows.</p>
         </div>
       </div>
     </div>

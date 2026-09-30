@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useStore } from '../../state/store'
 import { timeAgo } from '../../ui/format'
-import { Avatar, Badge, buttonClass, Card, CardHeader, EmptyState } from '../../ui/primitives'
+import { Avatar, Badge, buttonClass, Card, CardHeader, cx, EmptyState } from '../../ui/primitives'
 import { useIdentities } from '../sensor/hooks'
 import { OutcomeBadge } from '../shell/OutcomeBadge'
 
@@ -18,11 +18,10 @@ export function LabHome() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-2">
-          <Badge tone="accent">Phase 1</Badge>
-          <Badge>Webcam prototype</Badge>
-        </div>
-        <h1 className="mt-4 text-[32px] font-semibold tracking-tight text-ink">Optic Sensor Lab</h1>
+        <div className="font-mono text-[11px] tracking-[0.2em] text-accent-text uppercase">Sensor Lab · webcam prototype</div>
+        <h1 className="mt-3 text-[36px] leading-tight font-semibold tracking-[-0.03em] text-ink sm:text-[44px]">
+          Optic <span className="text-gradient">Sensor Lab</span>
+        </h1>
         <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">
           Enroll an eye with your webcam, then authenticate against it. Everything runs on this device — frames are
           processed in memory and only an encrypted numeric template is stored.
@@ -62,7 +61,7 @@ export function LabHome() {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <Stat label="Your enrolled identities" value={real.length} />
-        <Stat label="Optic scans stored" value={realScans.length} hint={`+ ${scans.length - realScans.length} demo personas`} />
+        <Stat label="Optic scans stored" value={realScans.length} hint={`+ ${scans.length - realScans.length} demo people`} />
         <Stat label="Lab authentications" value={events.length} hint={events[0] ? `Last ${timeAgo(events[0].at)}` : 'None yet'} />
       </div>
 
@@ -167,24 +166,21 @@ function ActionCard({
     <Link
       to={to}
       data-testid={testId}
-      className={
-        dark
-          ? 'group relative overflow-hidden rounded-2xl border border-black bg-[#0b0d10] p-6 text-white shadow-[var(--shadow-float)] transition hover:-translate-y-0.5'
-          : 'group relative overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-float)]'
-      }
+      className={cx(
+        'panel hairline group relative overflow-hidden rounded-3xl p-6 transition duration-300 hover:-translate-y-1',
+        dark && 'bg-gradient-to-br from-accent/[0.12] to-accent-2/[0.08]',
+      )}
     >
       {dark && (
         <div
-          className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-60"
-          style={{ background: 'radial-gradient(circle, rgba(124,192,255,0.18), transparent 70%)' }}
+          className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full opacity-70 blur-2xl"
+          style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--accent) 35%, transparent), transparent 70%)' }}
         />
       )}
-      <div className={dark ? 'flex size-10 items-center justify-center rounded-xl bg-white/10' : 'flex size-10 items-center justify-center rounded-xl bg-surface-2 text-ink'}>
-        {icon}
-      </div>
-      <h2 className="mt-5 text-[18px] font-semibold tracking-tight">{title}</h2>
-      <p className={dark ? 'mt-1.5 text-[14px] leading-relaxed text-white/60' : 'mt-1.5 text-[14px] leading-relaxed text-muted'}>{body}</p>
-      <div className={dark ? 'mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-white' : 'mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink'}>
+      <div className="relative flex size-11 items-center justify-center rounded-2xl border border-accent/25 bg-accent-soft text-accent shadow-[var(--glow)]">{icon}</div>
+      <h2 className="relative mt-5 text-[18px] font-semibold tracking-tight text-ink">{title}</h2>
+      <p className="relative mt-1.5 text-[14px] leading-relaxed text-muted">{body}</p>
+      <div className="relative mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-accent-text">
         {cta} <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
       </div>
     </Link>
@@ -193,9 +189,9 @@ function ActionCard({
 
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
   return (
-    <Card className="px-5 py-4">
-      <div className="text-[12px] font-medium text-muted">{label}</div>
-      <div className="mt-1 text-[26px] font-semibold tracking-tight text-ink tabular">{value}</div>
+    <Card className="hairline px-5 py-4">
+      <div className="font-mono text-[10.5px] tracking-[0.16em] text-subtle uppercase">{label}</div>
+      <div className="mt-2 font-mono text-[28px] font-medium tracking-tight text-ink tabular">{value}</div>
       {hint && <div className="mt-0.5 text-[12px] text-subtle">{hint}</div>}
     </Card>
   )

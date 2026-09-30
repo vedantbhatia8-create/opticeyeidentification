@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Camera, EyeOff, Lock, LogOut, Menu, ScanEye, UserX } from 'lucide-react'
+import { Camera, EyeOff, FlaskConical, Lock, LogOut, Menu, ScanEye, UserX } from 'lucide-react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { identityService } from '../../core/identity/IdentityService'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Backdrop } from '../../ui/Backdrop'
 import { Logo } from '../../ui/Logo'
 import { Avatar, cx } from '../../ui/primitives'
 import { DemoLauncher } from '../demo/DemoPanel'
+import { SideNavContent, sideNavClass } from '../shell/ConsoleLayout'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { SUITE_NAV } from './apps'
 import { usePresence, type PresenceState } from './presence'
@@ -13,6 +15,15 @@ import { useSession, useSuite } from './store'
 import { lockAllVaults } from './VaultApp'
 
 /** Applies the signed-in person's profile (accent + theme) while inside the apps. */
+/** Perceived brightness of a #rrggbb color, to pick readable text on top of it. */
+function isLight(hex: string) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return true
+  const n = parseInt(m[1], 16)
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150
+}
+
 function useProfileTheme(identityId: string | null) {
   const prefs = useSuite((s) => (identityId ? s.prefs[identityId] : undefined))
   const member = useSuite((s) => s.family.find((m) => identityId && m.identityId === identityId))
@@ -25,12 +36,14 @@ function useProfileTheme(identityId: string | null) {
       root.style.setProperty('--accent', accent)
       root.style.setProperty('--accent-text', accent)
       root.style.setProperty('--accent-soft', `color-mix(in srgb, ${accent} 12%, var(--surface))`)
+      root.style.setProperty('--accent-contrast', isLight(accent) ? '#021018' : '#ffffff')
     }
     if (theme) root.classList.toggle('dark', theme === 'dark')
     return () => {
       root.style.removeProperty('--accent')
       root.style.removeProperty('--accent-text')
       root.style.removeProperty('--accent-soft')
+      root.style.removeProperty('--accent-contrast')
       root.classList.toggle('dark', hadDark)
     }
   }, [accent, theme])
@@ -54,40 +67,23 @@ export function SuiteLayout() {
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
         {SUITE_NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              cx(
-                'group flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] font-medium transition',
-                isActive ? 'bg-surface-2 text-ink shadow-[inset_0_0_0_1px_var(--border)]' : 'text-muted hover:bg-surface-2/70 hover:text-ink',
-              )
-            }
-          >
-            <item.icon className="size-4 text-subtle group-hover:text-muted" />
-            {item.label}
+          <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => sideNavClass(isActive)}>
+            {({ isActive }) => <SideNavContent icon={item.icon} label={item.label} active={isActive} />}
           </NavLink>
         ))}
-        <div className="px-2.5 pt-5 pb-1.5 text-[11px] font-semibold tracking-[0.08em] text-subtle uppercase">Optic Access</div>
-        {[
-          { to: '/office', label: 'Office console' },
-          { to: '/hotel', label: 'Hotel console' },
-          { to: '/lab', label: 'Sensor Lab' },
-        ].map((l) => (
-          <Link key={l.to} to={l.to} className="flex h-8 items-center rounded-lg px-2.5 text-[13px] text-muted hover:bg-surface-2/70 hover:text-ink">
-            {l.label}
-          </Link>
-        ))}
+        <div className="px-2.5 pt-5 pb-1.5 font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">Tools</div>
+        <NavLink to="/lab" className={({ isActive }) => sideNavClass(isActive)}>
+          {({ isActive }) => <SideNavContent icon={FlaskConical} label="Sensor Lab" active={isActive} />}
+        </NavLink>
       </nav>
-      <div className="space-y-2 border-t border-line p-3">
+      <div className="space-y-2 border-t border-line/70 p-3">
         <CameraPill />
         <div className="flex items-center gap-2.5 px-1">
           <Link to="/apps/account" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg hover:opacity-80" data-testid="account-link">
           <Avatar name={session.name ?? '?'} size={30} />
           <div className="min-w-0 flex-1 leading-tight">
             <div className="truncate text-[13px] font-medium text-ink" data-testid="session-name">{session.name}</div>
-            <div className="flex items-center gap-1 text-[11px] text-subtle">
+            <div className="flex items-center gap-1 text-[11px] whitespace-nowrap text-subtle">
               <ScanEye className="size-3" /> Glance sign-in
             </div>
           </div>
@@ -102,12 +98,13 @@ export function SuiteLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-bg">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] border-r border-line bg-surface lg:block">{sidebar}</aside>
+    <div className="relative isolate min-h-screen bg-bg">
+      <Backdrop />
+      <aside className="panel fixed inset-y-3 left-3 bg-surface/90 z-30 hidden w-[236px] overflow-hidden rounded-3xl lg:block">{sidebar}</aside>
       <AnimatePresence>
         {mobileOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
-            <motion.div className="absolute inset-0 bg-black/30" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
+            <motion.div className="absolute inset-0 bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileOpen(false)} />
             <motion.aside
               className="absolute inset-y-0 left-0 w-[260px] border-r border-line bg-surface"
               initial={{ x: -260 }}
@@ -120,8 +117,8 @@ export function SuiteLayout() {
           </div>
         )}
       </AnimatePresence>
-      <div className="lg:pl-[240px]">
-        <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur-md lg:hidden">
+      <div className="lg:pl-[252px]">
+        <div className="panel sticky top-0 z-20 flex h-14 items-center justify-between rounded-none border-x-0 border-t-0 bg-bg/95 px-4 lg:hidden">
           <button onClick={() => setMobileOpen(true)} className="rounded-md p-1.5 text-muted" aria-label="Open navigation">
             <Menu className="size-5" />
           </button>
@@ -150,9 +147,9 @@ export function SuiteLayout() {
 function CameraPill() {
   const guard = useSuite((s) => s.guard.enabled)
   return (
-    <div className="flex items-center justify-between rounded-lg bg-surface-2/70 px-2.5 py-1.5 text-[11.5px] text-muted">
+    <div className="flex items-center justify-between rounded-xl border border-line bg-surface-2/60 px-2.5 py-1.5 text-[11.5px] whitespace-nowrap text-muted">
       <span className="flex items-center gap-1.5">
-        <Camera className="size-3.5" /> {guard ? 'Guard watching' : 'Camera on only when needed'}
+        <Camera className="size-3.5" /> {guard ? 'Guard watching' : 'Camera only when needed'}
       </span>
       <span className={cx('size-1.5 rounded-full', guard ? 'live-dot bg-ok text-ok' : 'bg-subtle')} />
     </div>

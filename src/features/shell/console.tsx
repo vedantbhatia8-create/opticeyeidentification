@@ -21,12 +21,12 @@ export function StatCard({
   tone?: 'bad'
 }) {
   return (
-    <Card className="px-5 py-4">
+    <Card className="hairline px-5 py-4">
       <div className="flex items-center justify-between">
-        <span className="text-[12.5px] font-medium text-muted">{label}</span>
-        {icon && <span className="text-subtle">{icon}</span>}
+        <span className="font-mono text-[10.5px] tracking-[0.16em] text-subtle uppercase">{label}</span>
+        {icon && <span className={cx('flex size-7 items-center justify-center rounded-lg', tone === 'bad' ? 'bg-bad-soft text-bad' : 'bg-accent-soft text-accent')}>{icon}</span>}
       </div>
-      <div className={cx('mt-2 text-[28px] leading-none font-semibold tracking-tight tabular', tone === 'bad' ? 'text-bad' : 'text-ink')}>
+      <div className={cx('mt-3 font-mono text-[30px] leading-none font-medium tracking-tight tabular', tone === 'bad' ? 'text-bad' : 'text-ink')}>
         {value}
       </div>
       {hint && <div className="mt-2 text-[12px] text-subtle">{hint}</div>}
@@ -169,7 +169,7 @@ export function HourlyChart({ events }: { events: AccessEvent[] }) {
               onMouseLeave={() => setHover(null)}
             >
               <div
-                className={cx('w-full rounded-t-[4px] transition-[height,opacity] duration-500', b.h > nowHour ? 'bg-line' : 'bg-accent')}
+                className={cx('w-full rounded-t-[4px] transition-[height,opacity] duration-500', b.h > nowHour ? 'bg-line' : 'bg-gradient-to-t from-accent/35 to-accent shadow-[0_0_12px_-3px_var(--accent)]')}
                 style={{ height: `${Math.max(b.total ? 3 : 0, (b.total / max) * 100)}%`, opacity: hover === null || hover === b.h ? 1 : 0.45 }}
               />
               {hover === b.h && (

@@ -299,7 +299,7 @@ function FilterChip({ active, onClick, label, count }: { active: boolean; onClic
       onClick={onClick}
       className={cx(
         'inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition',
-        active ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-muted hover:text-ink',
+        active ? 'border-accent/50 bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'border-line bg-surface text-muted hover:text-ink',
       )}
     >
       {label} <span className={cx('tabular', active ? 'text-bg/70' : 'text-subtle')}>{count}</span>

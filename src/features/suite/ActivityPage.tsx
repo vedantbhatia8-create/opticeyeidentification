@@ -23,7 +23,7 @@ export function SuiteActivity() {
           <button
             key={f.id}
             onClick={() => setApp(f.id)}
-            className={cx('h-8 rounded-lg border px-3 text-[12.5px] font-medium', app === f.id ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-muted hover:text-ink')}
+            className={cx('h-8 rounded-lg border px-3 text-[12.5px] font-medium', app === f.id ? 'border-accent/50 bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'border-line bg-surface text-muted hover:text-ink')}
           >
             {f.label}
           </button>

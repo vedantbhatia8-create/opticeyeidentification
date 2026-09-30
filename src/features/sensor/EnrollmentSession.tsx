@@ -421,7 +421,7 @@ function ReviewCard({
         onChange={(e) => setLabel(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && onSave()}
         className="mt-5 h-11 w-full rounded-xl border border-white/15 bg-black/30 px-4 text-[15px] text-white outline-none placeholder:text-white/30 focus:border-scan-accent/60"
-        placeholder="e.g. Office desk · daylight"
+        placeholder="e.g. Desk · daylight"
         data-testid="scan-label"
       />
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">

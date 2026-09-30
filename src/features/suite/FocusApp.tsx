@@ -130,7 +130,7 @@ export function FocusApp() {
                   <button
                     key={m}
                     onClick={() => setMinutes(m)}
-                    className={cx('h-9 flex-1 rounded-lg border text-[13px] font-medium', minutes === m ? 'border-ink bg-ink text-bg' : 'border-line text-muted hover:text-ink')}
+                    className={cx('h-9 flex-1 rounded-lg border text-[13px] font-medium', minutes === m ? 'border-accent/50 bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'border-line text-muted hover:text-ink')}
                     data-testid={`focus-min-${m}`}
                   >
                     {m} min
