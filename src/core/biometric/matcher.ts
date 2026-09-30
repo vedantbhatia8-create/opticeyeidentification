@@ -22,9 +22,14 @@ export interface MatchPolicy {
   minProbeSamples: number
 }
 
+/**
+ * Tuned strict: look-alikes (siblings) who never enrolled typically land
+ * around 0.45–0.55 from each other, so 0.42 keeps them out. Once both are
+ * enrolled, the runner-up margin decides between them.
+ */
 export const DEFAULT_MATCH_POLICY: MatchPolicy = {
-  acceptDistance: 0.5,
-  minMargin: 0.04,
+  acceptDistance: 0.42,
+  minMargin: 0.06,
   minProbeSamples: 3,
 }
 

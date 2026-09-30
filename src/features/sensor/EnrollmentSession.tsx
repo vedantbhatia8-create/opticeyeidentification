@@ -407,6 +407,8 @@ function ReviewCard({
   existingAccount: Identity | null
   onRestart: () => void
 }) {
+  const norm = (x: string) => x.trim().toLowerCase().replace(/\s+/g, ' ')
+  const lookAlike = !!duplicate && !!subjectName.trim() && norm(subjectName) !== norm(duplicate.name)
   const size = new TextEncoder().encode(JSON.stringify(template)).length
   return (
     <Panel>
@@ -453,7 +455,18 @@ function ReviewCard({
           This scan will be added to your existing account, <b className="text-white">{existingAccount.name}</b>.
         </div>
       )}
-      {duplicate && (
+      {duplicate && lookAlike && (
+        <div className="mt-4 rounded-xl border border-[#f5b454]/30 bg-[#f5b454]/[0.07] p-3.5 text-[13px] text-[#f5d49a]" data-testid="enroll-duplicate">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              These eyes look a lot like <b>{duplicate.name}</b>. If you are a different person (siblings often look alike),
+              save this as your own account. Once you are both enrolled, Optic tells you apart.
+            </span>
+          </div>
+        </div>
+      )}
+      {duplicate && !lookAlike && (
         <div className="mt-4 rounded-xl border border-[#f5b454]/30 bg-[#f5b454]/[0.07] p-3.5 text-[13px] text-[#f5d49a]" data-testid="enroll-duplicate">
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -478,15 +491,24 @@ function ReviewCard({
         <button
           onClick={onSave}
           className={
-            duplicate
+            duplicate && !lookAlike
               ? 'h-11 flex-[2] rounded-xl border border-white/15 text-[14px] font-medium text-white/70 hover:bg-white/5'
               : 'h-11 flex-[2] rounded-xl bg-white text-[14px] font-semibold text-black hover:bg-white/90'
           }
           data-testid="save-scan"
         >
-          {duplicate ? 'Keep as a separate account' : existingAccount ? 'Add to my account' : 'Save optic identity'}
+          {duplicate ? (lookAlike ? `Create ${subjectName.split(' ')[0] || 'my'}’s own account` : 'Keep as a separate account') : existingAccount ? 'Add to my account' : 'Save optic identity'}
         </button>
       </div>
+      {duplicate && lookAlike && (
+        <button
+          onClick={() => onSaveInto(duplicate)}
+          className="mt-3 w-full text-center text-[12.5px] text-white/50 underline-offset-2 hover:text-white/80 hover:underline"
+          data-testid="save-into-existing"
+        >
+          Actually, I am {duplicate.name}. Add this scan to that account
+        </button>
+      )}
     </Panel>
   )
 }

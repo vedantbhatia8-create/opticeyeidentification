@@ -112,6 +112,6 @@ Identity, authorization, access control and the UI stay unchanged. Templates are
 - `npm test` covers iris codes (rotation tolerance), template building, 1:N identification (enrolled people are recognized; 20 strangers are rejected), and the policy engine (schedules, overnight windows, visitor expiry, ended stays, suspension, lockdown).
 - The flows were also exercised end-to-end in headless Chromium with a synthetic camera feed made from real face photos:
   - enrollment → the genuine user is recognized (embedding distance ≈ 0.02);
-  - three different people are rejected (distance 0.66–0.74; threshold 0.50);
+  - three different people are rejected (distance 0.66–0.74; threshold 0.42, runner-up margin 0.06). Look-alikes such as siblings who never enrolled are the main false-accept risk for a webcam; enrolling both people lets the margin rule tell them apart.
   - blocked and missing cameras show recovery screens;
   - every office and hotel scenario in `/demo` produces the expected decision.

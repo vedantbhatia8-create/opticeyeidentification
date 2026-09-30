@@ -72,7 +72,7 @@ interface Actions {
   resetAll(): void
 }
 
-const SCHEMA = 5
+const SCHEMA = 6
 const RELOCK_MS = 6000
 
 function freshState(): Omit<State, 'settings' | 'demo'> {
@@ -272,7 +272,15 @@ export const useStore = create<State & Actions>()(
       name: 'optic-access-state',
       version: SCHEMA,
       partialize: ({ unlocked: _u, ...rest }) => rest,
-      migrate: () => ({ ...freshState(), settings: defaultSettings, demo: defaultDemo }) as unknown as State & Actions,
+      migrate: (persisted, version) => {
+        // 5 → 6: only the match threshold changed (0.50 → stricter default); keep all data.
+        if (version === 5 && persisted && typeof persisted === 'object') {
+          const p = persisted as State
+          const acceptDistance = p.settings.acceptDistance >= 0.5 ? defaultSettings.acceptDistance : p.settings.acceptDistance
+          return { ...p, schema: SCHEMA, settings: { ...p.settings, acceptDistance } } as unknown as State & Actions
+        }
+        return { ...freshState(), settings: defaultSettings, demo: defaultDemo } as unknown as State & Actions
+      },
     },
   ),
 )

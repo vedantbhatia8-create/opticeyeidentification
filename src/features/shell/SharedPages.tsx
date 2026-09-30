@@ -207,7 +207,7 @@ export function SettingsPage({ site }: { site: 'office' | 'hotel' }) {
                 className="mt-2 w-full accent-[var(--accent)]"
               />
               <p className="mt-2 text-[12px] text-muted">
-                Lower values reduce false accepts but may reject enrolled people in poor light. Default 0.50.
+                Lower values reduce false accepts but may reject enrolled people in poor light. Default 0.42. Raise it only if you are often not recognized; lower it if look-alikes get in.
               </p>
             </div>
             <div className="flex items-center justify-between border-t border-line px-5 py-3.5">
