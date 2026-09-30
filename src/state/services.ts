@@ -45,7 +45,6 @@ export function initServices() {
 }
 
 function initServicesOnce() {
-  useStore.getState().rebaseSeedToToday()
   clock.setOffset(useStore.getState().demo.clockOffsetMs)
   useStore.subscribe((s, prev) => {
     if (s.demo.clockOffsetMs !== prev.demo.clockOffsetMs) clock.setOffset(s.demo.clockOffsetMs)

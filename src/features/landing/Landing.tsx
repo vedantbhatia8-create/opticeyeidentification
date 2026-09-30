@@ -1,20 +1,27 @@
 import { motion, useInView } from 'framer-motion'
-import { ArrowRight, BadgeX, Building2, Check, CreditCard, Hotel, KeyRound, ListChecks, ScanEye, ShieldCheck, Smartphone, UserCog, X } from 'lucide-react'
+import { AppWindow, ArrowRight, BadgeX, Building2, Check, CreditCard, Hotel, KeyRound, ListChecks, ScanEye, ShieldCheck, Smartphone, UserCog, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Logo, LogoMark } from '../../ui/Logo'
 import { buttonClass, cx } from '../../ui/primitives'
 import { PRINCIPLES } from '../shell/SharedPages'
 import { SUITE_APPS } from '../suite/apps'
+import { useSession } from '../suite/store'
 import { ThemeToggle } from '../shell/ThemeToggle'
 
+const SIGN_UP = '/lab/enroll?return=/apps/signin'
+const LOG_IN = '/apps/signin'
+
 export function Landing() {
+  const session = useSession()
+  const signedIn = !!session.identityId
   return (
     <div className="min-h-screen bg-bg">
       <nav className="sticky top-0 z-30 border-b border-line/70 bg-bg/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
           <Logo />
           <div className="hidden items-center gap-6 text-[13.5px] text-muted md:flex">
+            <a href="#platform" className="hover:text-ink">Platform</a>
             <a href="#how" className="hover:text-ink">How it works</a>
             <a href="#offices" className="hover:text-ink">Offices</a>
             <a href="#hotels" className="hover:text-ink">Hotels</a>
@@ -23,9 +30,20 @@ export function Landing() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link to="/demo" className={buttonClass('primary', 'sm')}>
-              Try the Demo
-            </Link>
+            {signedIn ? (
+              <Link to="/apps" className={buttonClass('primary', 'sm')} data-testid="nav-open-apps">
+                {session.name?.split(' ')[0] ?? 'My'} · Open apps
+              </Link>
+            ) : (
+              <>
+                <Link to={LOG_IN} className={buttonClass('ghost', 'sm')} data-testid="nav-login">
+                  Log in
+                </Link>
+                <Link to={SIGN_UP} className={buttonClass('primary', 'sm')} data-testid="nav-signup">
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -35,24 +53,38 @@ export function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-16 pb-20 md:pt-24 lg:grid-cols-[1.05fr_1fr]">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}>
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-[12px] font-medium text-muted shadow-[var(--shadow-card)]">
-              <span className="size-1.5 rounded-full bg-ok" /> Working prototype · runs in your browser
+              <span className="size-1.5 rounded-full bg-ok" /> One identity for doors, rooms and apps
             </span>
             <h1 className="mt-6 text-[44px] leading-[1.02] font-semibold tracking-[-0.035em] text-ink sm:text-[64px]">
-              Your identity
+              One look.
               <br />
-              is the key.
+              Everything unlocks.
             </h1>
             <p className="mt-5 max-w-[480px] text-[18px] leading-relaxed text-muted">
-              Secure physical access without badges, cards, keys, or codes.
+              Optic turns your eyes into a single account. It opens office doors and hotel rooms, and signs you in to
+              a suite of apps: passwords, private documents, screen guard, family screen time, focus and attendance.
+              No badges, cards, keys or passwords.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/demo" className={buttonClass('primary', 'lg')} data-testid="try-demo">
-                Try the Demo <ArrowRight className="size-4" />
-              </Link>
-              <a href="#how" className={buttonClass('secondary', 'lg')}>
-                See How It Works
-              </a>
+              {signedIn ? (
+                <Link to="/apps" className={buttonClass('primary', 'lg')} data-testid="hero-open-apps">
+                  Open my apps <ArrowRight className="size-4" />
+                </Link>
+              ) : (
+                <>
+                  <Link to={SIGN_UP} className={buttonClass('primary', 'lg')} data-testid="hero-signup">
+                    Create your account <ArrowRight className="size-4" />
+                  </Link>
+                  <Link to={LOG_IN} className={buttonClass('secondary', 'lg')} data-testid="hero-login">
+                    <ScanEye className="size-4" /> Log in with a glance
+                  </Link>
+                </>
+              )}
             </div>
+            <p className="mt-3 text-[13px] text-subtle">
+              Sign up takes about 20 seconds with your webcam. Want the walkthrough first?{' '}
+              <Link to="/demo" className="text-accent-text hover:underline" data-testid="try-demo">Open the guided demo</Link>.
+            </p>
             <div className="mt-8 flex items-center gap-5 text-[12.5px] text-subtle">
               <span className="flex items-center gap-1.5"><Check className="size-3.5" /> No video stored</span>
               <span className="flex items-center gap-1.5"><Check className="size-3.5" /> Revocable instantly</span>
@@ -64,6 +96,40 @@ export function Landing() {
           </motion.div>
         </div>
       </section>
+
+      {/* Platform */}
+      <Section id="platform" eyebrow="The platform" title="One Optic account. Three ways to use it.">
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            { icon: Building2, title: 'Optic for Offices', body: 'Employees and visitors walk in with a glance. Groups, schedules, time-boxed visits, lockdown and a full audit trail.', to: '/office', cta: 'Office console' },
+            { icon: Hotel, title: 'Optic for Hotels', body: 'Check-in links a guest to their room for the exact dates of the stay. Check-out revokes access instantly.', to: '/hotel', cta: 'Hotel console' },
+            { icon: AppWindow, title: 'Optic Apps', body: `${SUITE_APPS.map((a) => a.name).join(', ')}. Everyday software that knows who is at the screen.`, to: '/apps', cta: 'Open apps' },
+          ].map((c) => (
+            <Link key={c.title} to={c.to} className="group rounded-2xl border border-line bg-surface p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-float)]">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent-text">
+                <c.icon className="size-5" />
+              </span>
+              <div className="mt-4 text-[16px] font-semibold text-ink">{c.title}</div>
+              <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{c.body}</p>
+              <span className="mt-4 flex items-center gap-1 text-[13px] font-medium text-accent-text">
+                {c.cta} <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {[
+            ['Sign up once', 'Enroll your eyes with a webcam and your email. That is your whole account.'],
+            ['Everything in one place', 'Scans, door access, stays, vault items and app data all live under that one account.'],
+            ['Private by design', 'Encrypted templates stay on your device. No video is stored and no data leaves the browser.'],
+          ].map(([t, b]) => (
+            <div key={t} className="rounded-2xl border border-line p-5">
+              <div className="flex items-center gap-2 text-[14px] font-semibold text-ink"><Check className="size-4 text-ok" /> {t}</div>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted">{b}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {/* Problem */}
       <Section id="problem" eyebrow="The problem" title="Credentials that can be lost can be used by someone else.">
@@ -112,8 +178,8 @@ export function Landing() {
           points={['Access groups and schedules: who → where → when', 'Visitors with time-boxed access that expires on its own', 'Lockdown any door in one click', 'Live activity and denied-attempt monitoring']}
           cta={<Link to="/office" className={buttonClass('primary')}>Open office console <ArrowRight className="size-4" /></Link>}
         >
-          <DecisionCard name="Sarah Chen" place="Main Entrance" granted />
-          <DecisionCard name="Sarah Chen" place="Server Room" reason="You do not have permission to access this area." />
+          <DecisionCard name="Employee" place="Main Entrance" granted />
+          <DecisionCard name="Employee" place="Server Room" reason="You do not have permission to access this area." />
         </SplitFeature>
       </Section>
 
@@ -124,8 +190,8 @@ export function Landing() {
           points={['Link a guest’s identity to a room at check-in', 'Access follows the exact dates of the stay', 'Check-out revokes access instantly — no cards to collect', 'Amenities by stay type: fitness, pool, club lounge']}
           cta={<Link to="/hotel" className={buttonClass('primary')}>Open hotel console <ArrowRight className="size-4" /></Link>}
         >
-          <DecisionCard name="Emma Johnson" place="Room 814" granted detail="Stay · Sep 27 – Sep 30" />
-          <DecisionCard name="Emma Johnson" place="Room 814" reason="Your hotel stay has ended." />
+          <DecisionCard name="Hotel guest" place="Room 814" granted detail="Stay · Sep 27 – Sep 30" />
+          <DecisionCard name="Hotel guest" place="Room 814" reason="Your hotel stay has ended." />
         </SplitFeature>
       </Section>
 
@@ -196,20 +262,24 @@ export function Landing() {
         <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-[#07080a] px-8 py-14 text-center text-white">
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(50% 80% at 50% 0%, rgba(124,192,255,0.14), transparent 70%)' }} />
           <LogoMark className="relative mx-auto size-10 text-white [--logo-fg:#07080a]" />
-          <h2 className="relative mt-6 text-[32px] font-semibold tracking-tight">See it with your own eyes.</h2>
-          <p className="relative mt-2 text-[15px] text-white/60">Enroll with your webcam in 20 seconds, then walk through the office and hotel.</p>
+          <h2 className="relative mt-6 text-[32px] font-semibold tracking-tight">Your eyes are your account.</h2>
+          <p className="relative mt-2 text-[15px] text-white/60">Sign up with your webcam in 20 seconds. Log in any time with a glance.</p>
           <div className="relative mt-7 flex flex-wrap justify-center gap-3">
-            <Link to="/lab/enroll" className="flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-[15px] font-medium text-black hover:bg-white/90">
-              Enroll my eyes <ArrowRight className="size-4" />
+            <Link to={SIGN_UP} className="flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-[15px] font-medium text-black hover:bg-white/90">
+              Sign up <ArrowRight className="size-4" />
             </Link>
-            <Link to="/demo" className="flex h-11 items-center rounded-lg border border-white/15 px-5 text-[15px] font-medium text-white/85 hover:bg-white/5">
-              Guided demo
+            <Link to={LOG_IN} className="flex h-11 items-center rounded-lg border border-white/15 px-5 text-[15px] font-medium text-white/85 hover:bg-white/5">
+              Log in
             </Link>
           </div>
         </div>
         <div className="mx-auto mt-8 flex max-w-6xl items-center justify-between text-[12px] text-subtle">
-          <span>Optic Access · prototype</span>
-          <Link to="/lab/architecture" className="hover:text-ink">Architecture</Link>
+          <span>Optic · prototype</span>
+          <span className="flex gap-4">
+            <Link to="/demo" className="hover:text-ink">Guided demo</Link>
+            <Link to="/lab" className="hover:text-ink">Sensor Lab</Link>
+            <Link to="/lab/architecture" className="hover:text-ink">Architecture</Link>
+          </span>
         </div>
       </section>
     </div>
@@ -318,7 +388,7 @@ function HeroTerminal() {
       </svg>
       <div className="relative mt-4 text-center">
         <div className="font-mono text-[11px] tracking-[0.28em]" style={{ color }}>{stage}</div>
-        <div className="mt-2 text-[22px] font-light text-white/85">{done ? 'Welcome, Sarah' : i === 0 ? 'Look at the sensor' : 'Hold still'}</div>
+        <div className="mt-2 text-[22px] font-light text-white/85">{done ? 'Welcome back' : i === 0 ? 'Look at the sensor' : 'Hold still'}</div>
       </div>
       <div className="relative mt-5 flex justify-center gap-1.5">
         {stages.map((s, k) => (

@@ -3,7 +3,6 @@ import { Camera, Clock, FlaskConical, Sparkles, UserRound, UserX, X } from 'luci
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
-import { personaIdentity } from '../../domains/personas'
 import { useStore } from '../../state/store'
 import { startOfDay } from '../../ui/format'
 import { Avatar, cx, Select, Toggle } from '../../ui/primitives'
@@ -37,8 +36,6 @@ export function DemoControls({ compact }: { compact?: boolean }) {
 
   const featured = [
     { id: null, label: 'My real eyes', sub: 'Live webcam biometrics', icon: <Camera className="size-4" /> },
-    { id: personaIdentity('sarah'), label: 'Sarah Chen', sub: 'Employee · Engineering' },
-    { id: personaIdentity('emma'), label: 'Emma Johnson', sub: 'Hotel guest · Room 814' },
     { id: 'unknown', label: 'Unknown Person', sub: 'Never enrolled', icon: <UserX className="size-4" /> },
   ]
   const others = synthetic.filter((i) => !featured.some((f) => f.id === i.id))
@@ -90,7 +87,7 @@ export function DemoControls({ compact }: { compact?: boolean }) {
               value={others.some((o) => o.id === demo.subject) ? demo.subject! : ''}
               onChange={(e) => e.target.value && setDemo({ subject: e.target.value })}
             >
-              <option value="">More demo personas…</option>
+              <option value="">More simulated identities…</option>
               {others.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
@@ -99,8 +96,8 @@ export function DemoControls({ compact }: { compact?: boolean }) {
             </Select>
           )}
           <p className="mt-2 text-[11.5px] leading-relaxed text-subtle">
-            With a persona selected, the webcam still tracks your face and eyes live; the biometric features are
-            replaced by that persona’s synthetic template and matched by the real engine.
+            With Unknown Person selected, the webcam still tracks your face live, but the biometric features come from
+            a never-enrolled stranger, so every attempt should be rejected.
           </p>
         </div>
 

@@ -15,8 +15,8 @@ Camera access only works on `http://localhost` or `https://`. Use a recent Chrom
 
 | Where | What |
 | --- | --- |
-| `/` | Landing page |
-| `/demo` | Guided demo script (one click per scenario) |
+| `/` | Platform overview with sign up / log in |
+| `/demo` | Guided walkthrough (one click per scenario) |
 | `/lab` | **Phase 1:** Optic Sensor Lab. Enroll, authenticate, and manage named optic scans |
 | `/office` | **Phase 2:** Office console (Meridian HQ) |
 | `/hotel` | **Phase 3:** Hotel console (The Linden) |
@@ -25,15 +25,18 @@ Camera access only works on `http://localhost` or `https://`. Use a recent Chrom
 
 Other commands: `npm test` (unit tests), `npm run typecheck`, `npm run build`, `npm run lint`.
 
-## Suggested demo (≈5 minutes)
+## Getting started (≈5 minutes)
 
-1. **Lab → Enroll identity.** Enter a name, email and user ID, then follow the five prompts (center, left, right, up, down). Name the resulting scan, e.g. "Desk · daylight".
-2. **Lab → Authenticate.** You get *ACCESS GRANTED · Welcome, you*. Anyone who isn't enrolled gets *Identity could not be verified*.
-3. **Demo Mode** (bottom-right button, or `/demo`). Pick **Sarah Chen**, **Emma Johnson** or **Unknown Person**. The webcam keeps tracking your face and eyes live. Only the biometric features are swapped for that persona's synthetic template, and the real matcher and policy engine make every decision.
-4. **Office.** Sarah at Main Entrance → granted, and the door swings open. Sarah at Server Room → *IDENTITY VERIFIED · ACCESS DENIED*. David Kim (visitor) at 3 PM → granted; at 5 PM → *VISITOR ACCESS EXPIRED*.
-5. **Hotel.** Emma at Room 814 → granted with *Stay Sep 27 – Sep 30*. Check her out at the front desk and try again → *Your hotel stay has ended.*
+The site starts empty: no built-in people, no fake history. Everyone in it is a real enrollment.
 
-No camera? Choose **Simulated (no camera)** in Demo Mode. The same pipeline runs with a camera-free sensor.
+1. **Sign up** on the home page. Enter your name and email, then follow the five prompts (center, left, right, up, down). That enrollment is your Optic account.
+2. **Log in** with a glance. Anyone who isn't enrolled gets *Identity could not be verified*.
+3. **`/demo`** runs the guided walkthrough with your own eyes:
+   - Office: adds you as an employee, then tries Main Entrance (granted), Server Room (*IDENTITY VERIFIED · ACCESS DENIED*) and 11 PM (outside hours).
+   - Hotel: checks you in to Room 814 (granted), tries Room 816 (denied), then checks you out (*Your hotel stay has ended.*).
+4. **Unknown Person** (Demo Mode, bottom-right) swaps in a never-enrolled stranger's features, so you can show a rejection without a second person.
+
+No camera? Choose **Simulated (no camera)** in Demo Mode.
 
 ## Optic Apps (`/apps`)
 

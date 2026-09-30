@@ -1,13 +1,13 @@
-import { Building2, Camera, Hotel, Play, RotateCcw } from 'lucide-react'
+import { Building2, Camera, Hotel, Play } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
-import { personaIdentity } from '../../domains/personas'
-import { useStore } from '../../state/store'
+import { newId, useStore } from '../../state/store'
 import { startOfDay } from '../../ui/format'
 import { Logo } from '../../ui/Logo'
 import { Badge, Button, Card, cx } from '../../ui/primitives'
 import { ThemeToggle } from '../shell/ThemeToggle'
+import { useIdentities } from '../sensor/hooks'
 import { DemoControls } from './DemoPanel'
 
 const HOUR = 3_600_000
@@ -18,7 +18,6 @@ function weekdayAt(hour: number) {
   while ([0, 6].includes(new Date(day).getDay())) day += 24 * HOUR
   return day + hour * HOUR - Date.now()
 }
-const todayAt = (hour: number) => startOfDay(Date.now()) + hour * HOUR - Date.now()
 
 interface Step {
   title: string
@@ -33,9 +32,29 @@ interface Step {
 export function DemoGuide() {
   const navigate = useNavigate()
   const setDemo = useStore((s) => s.setDemo)
-  const emma = useStore((s) => s.hotel.guests.find((g) => g.id === 'gst_emma'))
+  const { identities } = useIdentities()
+  const me = identities.find((i) => !i.synthetic && i.status === 'active') ?? null
+  const employee = useStore((s) => (me ? s.office.employees.find((e) => e.identityId === me.id) : undefined))
+  const guest = useStore((s) => (me ? s.hotel.guests.find((g) => g.identityId === me.id) : undefined))
+  const upsertEmployee = useStore((s) => s.upsertEmployee)
+  const upsertGuest = useStore((s) => s.upsertGuest)
   const checkOut = useStore((s) => s.checkOut)
-  const checkIn = useStore((s) => s.checkIn)
+
+  /** Make sure you exist as an employee (All Employees group only). */
+  const ensureEmployee = () => {
+    if (!me || employee) return
+    upsertEmployee({ id: newId('emp'), name: me.name, email: me.email ?? '', department: 'General', role: 'Employee', groupIds: [], status: 'active', identityId: me.id, createdAt: Date.now() })
+  }
+  /** Make sure you are checked in to Room 814 for the next two nights. */
+  const ensureStay = () => {
+    if (!me) return
+    const now = clock.now()
+    upsertGuest({
+      id: guest?.id ?? newId('gst'), name: me.name, email: me.email ?? '', roomNumber: '814',
+      checkIn: startOfDay(now) - 9 * HOUR, checkOut: startOfDay(now) + 2 * 24 * HOUR + 11 * HOUR,
+      status: 'checked-in', identityId: me.id, vip: false, partySize: 1, checkedOutAt: null, createdAt: guest?.createdAt ?? Date.now(),
+    })
+  }
 
   const run = (step: Step) => {
     step.before?.()
@@ -46,36 +65,25 @@ export function DemoGuide() {
   const phase1: Step[] = [
     { title: 'Enroll your own eyes', expect: 'granted', body: 'Guided five-look capture with your webcam. Name the scan when you’re done.', subject: null, clockOffset: null, to: '/lab/enroll' },
     { title: 'Authenticate yourself', expect: 'granted', body: <>Look at the sensor. Expect <b>ACCESS GRANTED · Welcome, you</b>.</>, subject: null, clockOffset: null, to: '/lab/authenticate' },
-    { title: 'Someone who never enrolled', expect: 'denied', body: <>Ask a friend to try — or use the Unknown Person persona. Expect <b>Identity could not be verified</b>.</>, subject: 'unknown', clockOffset: null, to: '/lab/authenticate' },
+    { title: 'Someone who never enrolled', expect: 'denied', body: <>Ask a friend to try, or use the Unknown Person subject. Expect <b>Identity could not be verified</b>.</>, subject: 'unknown', clockOffset: null, to: '/lab/authenticate' },
   ]
   const office: Step[] = [
-    { title: 'Sarah Chen · Main Entrance', expect: 'granted', body: 'Employee during office hours. Watch the door unlock.', subject: personaIdentity('sarah'), clockOffset: weekdayAt(10), to: '/terminal/office/door_main' },
-    { title: 'Sarah Chen · Server Room', expect: 'denied', body: <>Same verified identity, different door. <b>IDENTITY VERIFIED · ACCESS DENIED</b> — authentication and authorization are separate.</>, subject: personaIdentity('sarah'), clockOffset: weekdayAt(10), to: '/terminal/office/door_server' },
-    { title: 'Michael Patel · Server Room', expect: 'granted', body: 'Infrastructure group, 8 AM–6 PM on weekdays.', subject: personaIdentity('michael'), clockOffset: weekdayAt(10), to: '/terminal/office/door_server' },
-    { title: 'Sarah Chen · Main Entrance at 11 PM', expect: 'denied', body: 'Outside the Employees schedule (7 AM–8 PM).', subject: personaIdentity('sarah'), clockOffset: weekdayAt(23), to: '/terminal/office/door_main' },
-    { title: 'David Kim (visitor) · 3:00 PM', expect: 'granted', body: 'Acme visitor, Conference Room A, 2:00–4:00 PM today.', subject: personaIdentity('david'), clockOffset: todayAt(15), to: '/terminal/office/door_confA' },
-    { title: 'David Kim (visitor) · 5:00 PM', expect: 'denied', body: <>Still recognized — but <b>VISITOR ACCESS EXPIRED</b>.</>, subject: personaIdentity('david'), clockOffset: todayAt(17), to: '/terminal/office/door_confA' },
+    { title: 'You · Main Entrance', expect: 'granted', body: 'Adds you as an employee (All Employees group) and opens the lobby door during office hours.', subject: null, clockOffset: weekdayAt(10), to: '/terminal/office/door_main', before: ensureEmployee },
+    { title: 'You · Server Room', expect: 'denied', body: <>Same verified identity, different door. <b>IDENTITY VERIFIED · ACCESS DENIED</b>: authentication and authorization are separate.</>, subject: null, clockOffset: weekdayAt(10), to: '/terminal/office/door_server', before: ensureEmployee },
+    { title: 'You · Main Entrance at 11 PM', expect: 'denied', body: 'Outside the All Employees schedule (7 AM–8 PM).', subject: null, clockOffset: weekdayAt(23), to: '/terminal/office/door_main', before: ensureEmployee },
     { title: 'Unknown person · Main Entrance', expect: 'denied', body: 'Not enrolled anywhere: identity not recognized.', subject: 'unknown', clockOffset: weekdayAt(10), to: '/terminal/office/door_main' },
   ]
   const hotel: Step[] = [
+    { title: 'You · Room 814', expect: 'granted', body: 'Checks you in to Room 814 and opens it during your stay.', subject: null, clockOffset: null, to: '/terminal/hotel/room-814', before: ensureStay },
+    { title: 'You · Room 816', expect: 'denied', body: 'Recognized, but it is not your room.', subject: null, clockOffset: null, to: '/terminal/hotel/room-816', before: ensureStay },
     {
-      title: 'Emma Johnson · Room 814',
-      expect: 'granted',
-      body: 'Checked-in guest during her stay. Room unlocks.',
-      subject: personaIdentity('emma'),
-      clockOffset: null,
-      to: '/terminal/hotel/room-814',
-      before: () => emma?.status === 'checked-out' && checkIn('gst_emma'),
-    },
-    { title: 'Emma Johnson · Room 816', expect: 'denied', body: 'Recognized, but it is not her room.', subject: personaIdentity('emma'), clockOffset: null, to: '/terminal/hotel/room-816' },
-    {
-      title: 'Check Emma out, then try Room 814',
+      title: 'Check out, then try Room 814',
       expect: 'denied',
       body: <>Staff clicks “Check out guest”. Access is revoked instantly: <b>Your hotel stay has ended.</b></>,
-      subject: personaIdentity('emma'),
+      subject: null,
       clockOffset: null,
       to: '/terminal/hotel/room-814',
-      before: () => emma?.status === 'checked-in' && checkOut('gst_emma', clock.now()),
+      before: () => guest?.status === 'checked-in' && checkOut(guest.id, clock.now()),
     },
   ]
 
@@ -95,29 +103,22 @@ export function DemoGuide() {
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1fr_360px]">
         <div>
           <Badge tone="warn">DEMO MODE</Badge>
-          <h1 className="mt-4 text-[32px] font-semibold tracking-tight text-ink">Guided demo</h1>
+          <h1 className="mt-4 text-[32px] font-semibold tracking-tight text-ink">Getting started</h1>
           <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">
-            Walk through the whole system on one laptop. Start with your real eyes; then use demo personas so one
-            presenter can play several people. With a persona, the camera still tracks your eyes live — only the
-            biometric features are substituted, and the real matcher and policy engine make every decision.
+            Walk through the whole system with your own eyes. Enroll once, then every office and hotel step uses your real
+            identity. The real matcher and policy engine make every decision.
           </p>
+          {!me && (
+            <p className="mt-3 max-w-2xl text-[13px] text-warn">Enroll first (step 01): the office and hotel steps need your identity.</p>
+          )}
           <StepGroup icon={<Camera className="size-4" />} title="1 · The optic sensor" steps={phase1} onRun={run} offset={0} />
           <StepGroup icon={<Building2 className="size-4" />} title="2 · Office access" steps={office} onRun={run} offset={phase1.length} />
           <StepGroup icon={<Hotel className="size-4" />} title="3 · Hotel access" steps={hotel} onRun={run} offset={phase1.length + office.length} />
-          {emma?.status === 'checked-out' && (
-            <Button className="mt-4" size="sm" icon={<RotateCcw className="size-3.5" />} onClick={() => checkIn('gst_emma')}>
-              Restore Emma’s stay
-            </Button>
-          )}
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <Card className="p-5">
             <DemoControls compact />
           </Card>
-          <p className="mt-3 text-[12px] leading-relaxed text-subtle">
-            Tip: link your own enrolled identity to Sarah Chen (Office → People → Sarah → Link existing) to run the office
-            steps with your real eyes and no persona.
-          </p>
         </div>
       </div>
     </div>

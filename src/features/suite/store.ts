@@ -6,8 +6,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Schedule } from '../../core/authorization/types'
-import { personaIdentity } from '../../domains/personas'
-import { startOfDay } from '../../ui/format'
 
 export type AppId = 'suite' | 'vault' | 'eyes-only' | 'guard' | 'family' | 'focus' | 'attendance' | 'approve'
 
@@ -104,74 +102,9 @@ export const KID_APPS: KidApp[] = [
 
 export const ACCENTS = ['#2f5bea', '#0f8a6a', '#e0457b', '#8b5cf6', '#e0852b', '#0ea5b7', '#111214']
 
-const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6]
-const HOUR = 3_600_000
-
+/** Starts empty: family profiles and attendance lists are built from real accounts. */
 function seed() {
-  const today = startOfDay(Date.now())
-  const family: FamilyMember[] = [
-    {
-      id: 'fam_sarah',
-      name: 'Sarah',
-      role: 'parent',
-      identityId: personaIdentity('sarah'),
-      accent: '#2f5bea',
-      theme: 'light',
-      dailyMinutes: 0,
-      schedule: { type: 'always' },
-      apps: [],
-      paused: false,
-    },
-    {
-      id: 'fam_maya',
-      name: 'Maya',
-      role: 'kid',
-      identityId: personaIdentity('maya'),
-      accent: '#e0457b',
-      theme: 'light',
-      dailyMinutes: 60,
-      schedule: { type: 'weekly', days: EVERY_DAY, start: '07:00', end: '19:30' },
-      apps: ['khan', 'pbs', 'nasa', 'natgeo', 'typing'],
-      paused: false,
-    },
-    {
-      id: 'fam_leo',
-      name: 'Leo',
-      role: 'kid',
-      identityId: personaIdentity('leo'),
-      accent: '#0f8a6a',
-      theme: 'dark',
-      dailyMinutes: 120,
-      schedule: { type: 'weekly', days: EVERY_DAY, start: '07:00', end: '21:30' },
-      apps: ['scratch', 'code', 'duolingo', 'khan', 'nasa'],
-      paused: false,
-    },
-  ]
-  const attendance: AttendanceEvent[] = [
-    {
-      id: 'att_standup',
-      name: 'Engineering stand-up',
-      location: 'Meridian HQ · Conference Room A',
-      start: today + 9.5 * HOUR,
-      end: today + 23.5 * HOUR,
-      graceMin: 10,
-      roster: ['sarah', 'michael', 'lucas', 'grace', 'olivia'].map(personaIdentity),
-    },
-    {
-      id: 'att_cs101',
-      name: 'CS 101 · Lecture 7',
-      location: 'Hall B',
-      start: today + 13 * HOUR,
-      end: today + 23.9 * HOUR,
-      graceMin: 15,
-      roster: ['maya', 'leo', 'emma', 'david', 'sarah'].map(personaIdentity),
-    },
-  ]
-  const checkins: Checkin[] = [
-    { eventId: 'att_standup', identityId: personaIdentity('michael'), name: 'Michael Patel', at: today + 9.45 * HOUR, late: false },
-    { eventId: 'att_standup', identityId: personaIdentity('grace'), name: 'Grace Liu', at: today + 9.62 * HOUR, late: true },
-  ].filter((c) => c.at < Date.now())
-  return { family, attendance, checkins }
+  return { family: [] as FamilyMember[], attendance: [] as AttendanceEvent[], checkins: [] as Checkin[] }
 }
 
 interface SuiteState {

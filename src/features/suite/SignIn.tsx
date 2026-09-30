@@ -38,7 +38,7 @@ export function SignIn() {
         >
           New here? Create your Optic account
         </Link>
-        <div className="text-[12.5px] text-white/40">Already have an account? Just look at the sensor. Demo personas work too (Demo Mode on any console).</div>
+        <div className="text-[12.5px] text-white/40">Already have an account? Just look at the sensor.</div>
       </div>
     </TerminalShell>
   )

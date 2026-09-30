@@ -193,7 +193,7 @@ function CreateGuestModal({ open, onClose, onCreated }: { open: boolean; onClose
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Guest name">
-            <Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Emma Johnson" data-testid="guest-name" />
+            <Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" data-testid="guest-name" />
           </Field>
           <Field label="Email">
             <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="emma@example.com" />

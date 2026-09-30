@@ -92,7 +92,7 @@ function CreateVisitorModal({ open, onClose, onCreated }: { open: boolean; onClo
     name: '',
     company: '',
     email: '',
-    hostName: 'Sarah Chen',
+    hostName: '',
     doorIds: ['door_main', 'door_confA'],
     start: toLocalInput(today + 14 * 3_600_000),
     end: toLocalInput(today + 16 * 3_600_000),
@@ -128,7 +128,7 @@ function CreateVisitorModal({ open, onClose, onCreated }: { open: boolean; onClo
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Name">
-            <Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="David Kim" data-testid="visitor-name" />
+            <Input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" data-testid="visitor-name" />
           </Field>
           <Field label="Company">
             <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} placeholder="Acme" data-testid="visitor-company" />

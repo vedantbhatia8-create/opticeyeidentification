@@ -81,7 +81,7 @@ export function LabScans() {
         </div>
       )}
       <div className="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5 shadow-[var(--shadow-card)]">
-        {(['real', 'demo', 'all'] as Filter[]).map((f) => (
+        {(['real', 'demo', 'all'] as Filter[]).filter((f) => f !== 'demo' || counts.demo > 0).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -90,7 +90,7 @@ export function LabScans() {
               filter === f ? 'bg-surface-2 text-ink' : 'text-muted hover:text-ink',
             )}
           >
-            {f === 'real' ? 'Webcam enrollments' : f === 'demo' ? 'Demo personas' : 'All'}
+            {f === 'real' ? 'Webcam enrollments' : f === 'demo' ? 'Simulated' : 'All'}
             <span className="ml-1.5 text-subtle tabular">{counts[f]}</span>
           </button>
         ))}
@@ -101,7 +101,7 @@ export function LabScans() {
           <Card>
             <EmptyState
               icon={<Fingerprint className="size-5" />}
-              title={filter === 'demo' ? 'No demo personas' : 'No optic scans yet'}
+              title={filter === 'demo' ? 'No simulated identities' : 'No optic scans yet'}
               description="Enroll an identity with your webcam. The scan will appear here, ready to be named."
               action={
                 <Link to="/lab/enroll" className={buttonClass('primary', 'sm')}>
@@ -174,7 +174,7 @@ function IdentityCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[15px] font-semibold text-ink">{identity.name}</span>
-            {identity.synthetic ? <Badge tone="warn">Demo persona</Badge> : <Badge tone="accent">Webcam</Badge>}
+            {identity.synthetic ? <Badge tone="warn">Simulated</Badge> : <Badge tone="accent">Webcam</Badge>}
             {!active && <Badge tone="bad">Revoked</Badge>}
             {links.map((l) => (
               <Badge key={l}>{l}</Badge>
