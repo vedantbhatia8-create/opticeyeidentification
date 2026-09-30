@@ -6,6 +6,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Schedule } from '../../core/authorization/types'
+import { DEMO_IDS, demoCast, isDemoRecord } from '../../domains/demoPeople'
 
 export type AppId = 'suite' | 'vault' | 'eyes-only' | 'guard' | 'family' | 'focus' | 'attendance' | 'approve'
 
@@ -128,6 +129,8 @@ interface SuiteState {
   removeAttendance(id: string): void
   checkIn(c: Checkin): void
   setPrefs(identityId: string, p: ProfilePrefs): void
+  /** Adds (or refreshes) the demo family and attendance lists; `false` removes them. */
+  applyDemoPeople(on: boolean): void
   reset(): void
 }
 
@@ -170,6 +173,15 @@ export const useSuite = create<SuiteState>()(
           s.checkins.some((x) => x.eventId === c.eventId && x.identityId === c.identityId) ? s : { checkins: [...s.checkins, c] },
         ),
       setPrefs: (identityId, p) => set((s) => ({ prefs: { ...s.prefs, [identityId]: p } })),
+      applyDemoPeople: (on) =>
+        set((s) => {
+          const family = s.family.filter((x) => !isDemoRecord(x))
+          const attendance = s.attendance.filter((x) => !DEMO_IDS.has(x.id))
+          const checkins = s.checkins.filter((c) => !DEMO_IDS.has(c.eventId))
+          if (!on) return { family, attendance, checkins }
+          const cast = demoCast(Date.now())
+          return { family: [...cast.family, ...family], attendance: [...cast.attendance, ...attendance], checkins: [...checkins, ...cast.checkins] }
+        }),
       reset: () => set({ ...seed(), usage: {}, bonus: {}, focus: [], prefs: {}, events: [] }),
     }),
     { name: 'optic-suite', version: 1 },

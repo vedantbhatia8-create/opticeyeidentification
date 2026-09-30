@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { SENSOR_KIND_LABEL, createSensor } from '../../core/sensor/registry'
 import { SENSOR_ERROR_COPY, isSensorError, type SensorKind } from '../../core/sensor/types'
 import { resetPrototype } from '../../state/services'
+import { DemoPeopleToggle } from '../demo/DemoPanel'
 import { useStore } from '../../state/store'
 import { timeAgo } from '../../ui/format'
 import { Modal } from '../../ui/overlay'
@@ -216,6 +217,7 @@ export function SettingsPage({ site }: { site: 'office' | 'hotel' }) {
               </div>
               <Toggle checked={settings.showDiagnostics} onChange={(v) => setSettings({ showDiagnostics: v })} label="Diagnostics" />
             </div>
+            <DemoPeopleToggle className="border-t border-line px-5 py-3.5" />
           </Card>
           <Card>
             <CardHeader title="Data inventory" description="What this prototype stores, and where." />

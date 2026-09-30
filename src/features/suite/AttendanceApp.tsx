@@ -1,5 +1,6 @@
 import { ArrowUpRight, CalendarClock, Download, MapPin, Plus, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { identityService } from '../../core/identity/IdentityService'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import type { SiteAdapter } from '../../core/access/types'
 import type { Principal } from '../../core/authorization/types'
@@ -29,7 +30,7 @@ export function attendanceAdapter(eventId: string): SiteAdapter {
     resolvePrincipal(identityId) {
       lastIdentityId = identityId
       const e = event()
-      if (!e || !e.roster.includes(identityId)) return null
+      if (!e || !e.roster.some((id) => identityService.isSameAccount(identityId, id))) return null
       const p: Principal = {
         id: identityId,
         kind: 'member',

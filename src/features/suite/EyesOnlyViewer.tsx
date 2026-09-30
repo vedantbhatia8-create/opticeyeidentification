@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, EyeOff, Lock, ScanEye, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { identityService } from '../../core/identity/IdentityService'
 import { Link, useParams } from 'react-router-dom'
 import { authorize } from '../../core/authorization/engine'
 import type { Principal } from '../../core/authorization/types'
@@ -145,7 +146,7 @@ function ProtectedView({ phase, onClose }: { phase: Extract<Phase, { kind: 'open
     return () => clearInterval(t)
   }, [])
 
-  const reader = p.who !== null && p.who !== 'unknown' && p.who.identityId === phase.viewerId
+  const reader = p.who !== null && p.who !== 'unknown' && identityService.isSameAccount(p.who.identityId, phase.viewerId)
   const hiddenReason =
     p.status.state !== 'running'
       ? 'Sensor starting'

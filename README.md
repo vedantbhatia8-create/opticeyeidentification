@@ -6,6 +6,8 @@
 
 ## Run it
 
+Live at **https://opticaccess.vercel.app** (deployed from this branch). To run locally:
+
 ```bash
 npm install        # also copies the on-device ML runtimes into public/vendor
 npm run dev        # http://localhost:5173
@@ -34,7 +36,8 @@ The site starts empty: no built-in people, no fake history. Everyone in it is a 
 3. **`/demo`** runs the guided walkthrough with your own eyes:
    - Office: adds you as an employee, then tries Main Entrance (granted), Server Room (*IDENTITY VERIFIED · ACCESS DENIED*) and 11 PM (outside hours).
    - Hotel: checks you in to Room 814 (granted), tries Room 816 (denied), then checks you out (*Your hotel stay has ended.*).
-4. **Unknown Person** (Demo Mode, bottom-right) swaps in a never-enrolled stranger's features, so you can show a rejection without a second person.
+4. **Demo people** (switch on `/demo`, in the Demo Mode panel, or in console Settings). On: adds a made-up cast (Sarah Chen, the Chen family, Emma Johnson and others) with synthetic scans, office and hotel records, family profiles, attendance lists and a day of history, plus extra walkthrough steps. Off: removes all of it, leaving only people who actually signed up.
+5. **Unknown Person** (Demo Mode, bottom-right) swaps in a never-enrolled stranger's features, so you can show a rejection without a second person.
 
 No camera? Choose **Simulated (no camera)** in Demo Mode.
 

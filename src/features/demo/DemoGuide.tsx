@@ -1,4 +1,4 @@
-import { Building2, Camera, Hotel, Play } from 'lucide-react'
+import { Building2, Camera, Hotel, Play, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
@@ -8,11 +8,14 @@ import { Logo } from '../../ui/Logo'
 import { Badge, Button, Card, cx } from '../../ui/primitives'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { useIdentities } from '../sensor/hooks'
-import { DemoControls } from './DemoPanel'
+import { DemoControls, DemoPeopleToggle } from './DemoPanel'
+import { personaIdentity } from '../../domains/personas'
 
 const HOUR = 3_600_000
 
 /** Clock offset that lands on a weekday at the given hour (office rules are Mon–Fri). */
+const todayAt = (hour: number) => startOfDay(Date.now()) + hour * HOUR - Date.now()
+
 function weekdayAt(hour: number) {
   let day = startOfDay(Date.now())
   while ([0, 6].includes(new Date(day).getDay())) day += 24 * HOUR
@@ -39,6 +42,9 @@ export function DemoGuide() {
   const upsertEmployee = useStore((s) => s.upsertEmployee)
   const upsertGuest = useStore((s) => s.upsertGuest)
   const checkOut = useStore((s) => s.checkOut)
+  const checkIn = useStore((s) => s.checkIn)
+  const demoPeople = useStore((s) => s.settings.demoPeople)
+  const emma = useStore((s) => s.hotel.guests.find((g) => g.id === 'gst_emma'))
 
   /** Make sure you exist as an employee (All Employees group only). */
   const ensureEmployee = () => {
@@ -87,6 +93,32 @@ export function DemoGuide() {
     },
   ]
 
+  const cast: Step[] = [
+    { title: 'Sarah Chen · Main Entrance', expect: 'granted', body: 'Employee during office hours.', subject: personaIdentity('sarah'), clockOffset: weekdayAt(10), to: '/terminal/office/door_main' },
+    { title: 'Sarah Chen · Server Room', expect: 'denied', body: 'Verified, but Engineering has no Server Room access.', subject: personaIdentity('sarah'), clockOffset: weekdayAt(10), to: '/terminal/office/door_server' },
+    { title: 'Michael Patel · Server Room', expect: 'granted', body: 'Infrastructure group, 8 AM–6 PM on weekdays.', subject: personaIdentity('michael'), clockOffset: weekdayAt(10), to: '/terminal/office/door_server' },
+    { title: 'David Kim (visitor) · 3:00 PM', expect: 'granted', body: 'Acme visitor, Conference Room A, 2:00–4:00 PM today.', subject: personaIdentity('david'), clockOffset: todayAt(15), to: '/terminal/office/door_confA' },
+    { title: 'David Kim (visitor) · 5:00 PM', expect: 'denied', body: <>Still recognized, but <b>VISITOR ACCESS EXPIRED</b>.</>, subject: personaIdentity('david'), clockOffset: todayAt(17), to: '/terminal/office/door_confA' },
+    {
+      title: 'Emma Johnson · Room 814',
+      expect: 'granted',
+      body: 'Checked-in guest during her stay.',
+      subject: personaIdentity('emma'),
+      clockOffset: null,
+      to: '/terminal/hotel/room-814',
+      before: () => emma?.status === 'checked-out' && checkIn('gst_emma'),
+    },
+    {
+      title: 'Check Emma out, then try Room 814',
+      expect: 'denied',
+      body: <>Access is revoked instantly: <b>Your hotel stay has ended.</b></>,
+      subject: personaIdentity('emma'),
+      clockOffset: null,
+      to: '/terminal/hotel/room-814',
+      before: () => emma?.status === 'checked-in' && checkOut('gst_emma', clock.now()),
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-bg">
       <nav className="border-b border-line">
@@ -111,9 +143,15 @@ export function DemoGuide() {
           {!me && (
             <p className="mt-3 max-w-2xl text-[13px] text-warn">Enroll first (step 01): the office and hotel steps need your identity.</p>
           )}
+          <Card className="mt-6 max-w-2xl p-4">
+            <DemoPeopleToggle />
+          </Card>
           <StepGroup icon={<Camera className="size-4" />} title="1 · The optic sensor" steps={phase1} onRun={run} offset={0} />
           <StepGroup icon={<Building2 className="size-4" />} title="2 · Office access" steps={office} onRun={run} offset={phase1.length} />
           <StepGroup icon={<Hotel className="size-4" />} title="3 · Hotel access" steps={hotel} onRun={run} offset={phase1.length + office.length} />
+          {demoPeople && (
+            <StepGroup icon={<Users className="size-4" />} title="4 · With the demo people" steps={cast} onRun={run} offset={phase1.length + office.length + hotel.length} />
+          )}
         </div>
         <div className="lg:sticky lg:top-6 lg:self-start">
           <Card className="p-5">

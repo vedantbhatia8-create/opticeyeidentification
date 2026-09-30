@@ -217,7 +217,19 @@ export class IdentityService {
     this.emit()
   }
 
-  /** Removes every non-demo enrollment (used by "Reset prototype data"). */
+  /** Adds the given demo identities (skipping any that already exist). */
+  async addDemoIdentities(seeds: DemoIdentitySeed[]) {
+    await this.requireReady()
+    await this.ensureDemoIdentities(seeds)
+    this.emit()
+  }
+
+  /** Removes the given demo identities and their synthetic templates. */
+  async removeDemoIdentities(seeds: DemoIdentitySeed[]) {
+    for (const seed of seeds) if (this.identities.get(seed.identityId)?.synthetic) await this.deleteIdentity(seed.identityId)
+  }
+
+  /** Removes every enrollment, then re-adds the given demo identities (used by "Reset prototype data"). */
   async purgeAll(seeds: DemoIdentitySeed[]) {
     const { store } = await this.requireReady()
     await store.clear(STORES.scans)
@@ -227,6 +239,29 @@ export class IdentityService {
     this.templateCache.clear()
     await this.ensureDemoIdentities(seeds)
     this.emit()
+  }
+
+  /**
+   * Every identity id that belongs to the same person as `id`: the id itself
+   * plus real identities with the same email or the same name. Guards against
+   * leftover duplicate records making a person "someone else" to themselves.
+   */
+  accountIds(id: string): string[] {
+    const me = this.identities.get(id)
+    if (!me || me.synthetic) return [id]
+    const email = normalizeEmail(me.email)
+    const name = me.name.trim().toLowerCase()
+    const ids = [...this.identities.values()]
+      .filter((i) => !i.synthetic && i.status === 'active')
+      .filter((i) => (email && normalizeEmail(i.email) === email) || (name && i.name.trim().toLowerCase() === name))
+      .map((i) => i.id)
+    return [id, ...ids.filter((x) => x !== id)]
+  }
+
+  /** True when both ids belong to the same person's account. */
+  isSameAccount(a?: string | null, b?: string | null): boolean {
+    if (!a || !b) return false
+    return a === b || this.accountIds(a).includes(b)
   }
 
   /** The real (non-demo) account registered to this email, if any. */
@@ -293,6 +328,17 @@ export class IdentityService {
   // ── Verification ─────────────────────────────────────────────────────────
   async verify(probe: BiometricSample[], policy: MatchPolicy = DEFAULT_MATCH_POLICY): Promise<IdentityVerification> {
     const { key, store } = await this.requireReady()
+    const canonicalIds = new Map<string, string>()
+    const canonical = (id: string) => {
+      let c = canonicalIds.get(id)
+      if (!c) {
+        c = this.accountIds(id)
+          .map((x) => this.identities.get(x)!)
+          .sort((x, y) => x.createdAt - y.createdAt)[0].id
+        canonicalIds.set(id, c)
+      }
+      return c
+    }
     const candidates = []
     for (const scan of this.scans.values()) {
       const identity = this.identities.get(scan.identityId)
@@ -302,7 +348,8 @@ export class IdentityService {
         template = await unseal<OpticTemplate>(key, scan.sealed)
         this.templateCache.set(scan.id, template)
       }
-      candidates.push({ identityId: scan.identityId, scanId: scan.id, template })
+      // Duplicate records of one person compete as one account, not as rivals.
+      candidates.push({ identityId: canonical(scan.identityId), scanId: scan.id, template })
     }
     const result: IdentificationResult = identify(probe, candidates, policy)
 

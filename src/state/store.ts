@@ -11,6 +11,7 @@ import { DEFAULT_MATCH_POLICY } from '../core/biometric/matcher'
 import type { Guest, HotelState, Room } from '../domains/hotel/model'
 import { roomResourceId } from '../domains/hotel/model'
 import type { AccessRule, Door, Employee, OfficeState, Visitor } from '../domains/office/model'
+import { demoCast, isDemoEvent, isDemoRecord } from '../domains/demoPeople'
 import { seedEvents, seedHotel, seedOffice } from '../domains/seed'
 import { startOfDay } from '../ui/format'
 
@@ -29,6 +30,8 @@ export interface Settings {
   sensorKind: Extract<SensorKind, 'webcam' | 'simulated'>
   acceptDistance: number
   showDiagnostics: boolean
+  /** Show the demo cast (Sarah Chen, the Chen family, hotel guests…) alongside real people. */
+  demoPeople: boolean
 }
 
 interface State {
@@ -64,6 +67,8 @@ interface Actions {
   setSettings(patch: Partial<Settings>): void
   setDemo(patch: Partial<DemoSettings>): void
   clearIdentityLinks(identityId: string): void
+  /** Adds (or refreshes) the demo cast's records; `false` removes them. */
+  applyDemoPeople(on: boolean): void
   resetAll(): void
 }
 
@@ -91,6 +96,7 @@ const defaultSettings: Settings = {
   sensorKind: 'webcam',
   acceptDistance: DEFAULT_MATCH_POLICY.acceptDistance,
   showDiagnostics: false,
+  demoPeople: false,
 }
 const defaultDemo: DemoSettings = { enabled: false, subject: null, clockOffsetMs: 0 }
 
@@ -223,6 +229,41 @@ export const useStore = create<State & Actions>()(
             guests: s.hotel.guests.map((g) => (g.identityId === identityId ? { ...g, identityId: null } : g)),
           },
         })),
+
+      applyDemoPeople: (on) =>
+        set((s) => {
+          const now = Date.now()
+          // Always strip the old cast first so turning it on again refreshes dates.
+          const office = {
+            ...s.office,
+            employees: s.office.employees.filter((x) => !isDemoRecord(x)),
+            visitors: s.office.visitors.filter((x) => !isDemoRecord(x)),
+          }
+          const removedGuests = s.hotel.guests.filter((x) => isDemoRecord(x))
+          const guests = s.hotel.guests.filter((x) => !isDemoRecord(x))
+          const stillOccupied = new Set(guests.filter((g) => g.status === 'checked-in').map((g) => g.roomNumber))
+          let rooms = s.hotel.rooms.map((r) =>
+            removedGuests.some((g) => g.roomNumber === r.number) && !stillOccupied.has(r.number) && r.status === 'occupied'
+              ? { ...r, status: 'vacant' as const }
+              : r,
+          )
+          let events = s.events.filter((e) => !isDemoEvent(e))
+          const settings = { ...s.settings, demoPeople: on }
+          if (!on) return { office, hotel: { ...s.hotel, guests, rooms }, events, settings }
+
+          const cast = demoCast(now)
+          const free = (roomNumber: string) => !stillOccupied.has(roomNumber)
+          const castGuests = cast.guests.filter((g) => free(g.roomNumber))
+          rooms = rooms.map((r) => (cast.occupiedRooms.includes(r.number) && free(r.number) ? { ...r, status: 'occupied' as const } : r))
+          events = [...events, ...cast.events].sort((a, b) => b.at - a.at)
+          return {
+            seededDay: startOfDay(now),
+            office: { ...office, employees: [...office.employees, ...cast.employees], visitors: [...office.visitors, ...cast.visitors] },
+            hotel: { ...s.hotel, guests: [...guests, ...castGuests], rooms },
+            events,
+            settings,
+          }
+        }),
 
       resetAll: () => set({ ...freshState(), demo: defaultDemo }),
 

@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Camera, Clock, FlaskConical, Sparkles, UserRound, UserX, X } from 'lucide-react'
+import { Camera, Clock, FlaskConical, Sparkles, UserRound, Users, UserX, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { clock } from '../../core/access/clock'
+import { DEMO_PERSONAS, personaIdentity } from '../../domains/personas'
+import { setDemoPeople } from '../../state/services'
 import { useStore } from '../../state/store'
 import { startOfDay } from '../../ui/format'
 import { Avatar, cx, Select, Toggle } from '../../ui/primitives'
@@ -25,6 +27,35 @@ export function useDemoClock() {
   return { setHour, activeHour, offset: demo.clockOffsetMs }
 }
 
+/** Shows or hides the demo cast (Sarah Chen, the Chen family, hotel guests…) everywhere. */
+export function DemoPeopleToggle({ className }: { className?: string }) {
+  const on = useStore((s) => s.settings.demoPeople)
+  const [busy, setBusy] = useState(false)
+  const toggle = async (next: boolean) => {
+    setBusy(true)
+    try {
+      await setDemoPeople(next)
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className={cx('flex items-center justify-between gap-3', className)} data-testid="demo-people">
+      <div>
+        <div className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
+          <Users className="size-4 text-muted" /> Demo people
+        </div>
+        <div className="text-[12px] leading-snug text-muted">
+          {on
+            ? `Showing ${DEMO_PERSONAS.length} made-up people (Sarah Chen, Maya Chen, Emma Johnson…) next to real accounts.`
+            : 'Off: only people who actually signed up. Turn on to add Sarah Chen, Maya Chen and the rest of the demo cast.'}
+        </div>
+      </div>
+      <Toggle checked={on} onChange={(v) => !busy && void toggle(v)} label="Demo people" />
+    </div>
+  )
+}
+
 export function DemoControls({ compact }: { compact?: boolean }) {
   const demo = useStore((s) => s.demo)
   const setDemo = useStore((s) => s.setDemo)
@@ -34,14 +65,22 @@ export function DemoControls({ compact }: { compact?: boolean }) {
   const synthetic = identities.filter((i) => i.synthetic && i.demoSeed)
   const { setHour, activeHour, offset } = useDemoClock()
 
+  const demoPeople = useStore((s) => s.settings.demoPeople)
   const featured = [
     { id: null, label: 'My real eyes', sub: 'Live webcam biometrics', icon: <Camera className="size-4" /> },
+    ...(demoPeople
+      ? [
+          { id: personaIdentity('sarah'), label: 'Sarah Chen', sub: 'Employee · Engineering' },
+          { id: personaIdentity('emma'), label: 'Emma Johnson', sub: 'Hotel guest · Room 814' },
+        ]
+      : []),
     { id: 'unknown', label: 'Unknown Person', sub: 'Never enrolled', icon: <UserX className="size-4" /> },
   ]
   const others = synthetic.filter((i) => !featured.some((f) => f.id === i.id))
 
   return (
     <div className="space-y-5">
+      <DemoPeopleToggle className="border-b border-line pb-4" />
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[14px] font-semibold text-ink">Demo Mode</div>
@@ -87,7 +126,7 @@ export function DemoControls({ compact }: { compact?: boolean }) {
               value={others.some((o) => o.id === demo.subject) ? demo.subject! : ''}
               onChange={(e) => e.target.value && setDemo({ subject: e.target.value })}
             >
-              <option value="">More simulated identities…</option>
+              <option value="">More demo people…</option>
               {others.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
@@ -96,8 +135,8 @@ export function DemoControls({ compact }: { compact?: boolean }) {
             </Select>
           )}
           <p className="mt-2 text-[11.5px] leading-relaxed text-subtle">
-            With Unknown Person selected, the webcam still tracks your face live, but the biometric features come from
-            a never-enrolled stranger, so every attempt should be rejected.
+            With a demo person selected, the webcam still tracks your face live, but the biometric features come from
+            that person’s synthetic template (Unknown Person: a never-enrolled stranger) and the real engine decides.
           </p>
         </div>
 

@@ -189,7 +189,7 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
     (req: GlanceRequest) =>
       new Promise<GlanceResult>((resolve) => {
         const s = useSession.getState()
-        if (req.allowRecent && s.identityId && req.expectIdentityId === s.identityId && Date.now() - s.lastVerifiedAt < 30_000) {
+        if (req.allowRecent && s.identityId && identityService.isSameAccount(req.expectIdentityId, s.identityId) && Date.now() - s.lastVerifiedAt < 30_000) {
           resolve({ ok: true, identityId: s.identityId, name: s.name })
           return
         }
@@ -205,7 +205,7 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
               name: r.name ?? 'Unknown person',
               ok: r.ok,
             })
-            if (r.ok && r.identityId === useSession.getState().identityId) useSession.getState().touch()
+            if (r.ok && identityService.isSameAccount(r.identityId, useSession.getState().identityId)) useSession.getState().touch()
             resolve(r)
           },
         })
@@ -293,7 +293,8 @@ function GlanceModal({
     if (v.status === 'verified') {
       const allowedList = request.allowed && request.allowed.length ? request.allowed : null
       const wrong =
-        (request.expectIdentityId && v.identity.id !== request.expectIdentityId) || (allowedList && !allowedList.includes(v.identity.id))
+        (request.expectIdentityId && !identityService.isSameAccount(v.identity.id, request.expectIdentityId)) ||
+        (allowedList && !allowedList.some((id) => identityService.isSameAccount(v.identity.id, id)))
       result = wrong
         ? { ok: false, identityId: v.identity.id, name: v.identity.name, reason: 'wrong-person' }
         : { ok: true, identityId: v.identity.id, name: v.identity.name }

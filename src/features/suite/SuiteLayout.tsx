@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Camera, EyeOff, Lock, LogOut, Menu, ScanEye, UserX } from 'lucide-react'
 import { useEffect, useLayoutEffect, useState } from 'react'
+import { identityService } from '../../core/identity/IdentityService'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../../ui/Logo'
 import { Avatar, cx } from '../../ui/primitives'
@@ -176,8 +177,8 @@ export function useGuardState(p: PresenceState, sessionId: string | null, active
   const running = p.status.state === 'running'
   const away = active && running && guard.awayLock && p.faces === 'none' && now - p.lastFaceAt > guard.awaySeconds * 1000 && p.lastFaceAt > 0
   const stranger =
-    active && running && guard.strangerLock && p.faces === 'one' && (p.who === 'unknown' || (p.who !== null && p.who.identityId !== sessionId))
-  const owner = p.who !== null && p.who !== 'unknown' && p.who.identityId === sessionId
+    active && running && guard.strangerLock && p.faces === 'one' && (p.who === 'unknown' || (p.who !== null && !identityService.isSameAccount(p.who.identityId, sessionId)))
+  const owner = p.who !== null && p.who !== 'unknown' && identityService.isSameAccount(p.who.identityId, sessionId)
 
   useEffect(() => {
     if (!active) {

@@ -1,5 +1,6 @@
 import { ArrowUpRight, Clock, Hourglass, Monitor, Moon, Pause, Play, Plus, ScanEye, Sun, Trash2, UserPlus } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
+import { identityService } from '../../core/identity/IdentityService'
 import { Link, useSearchParams } from 'react-router-dom'
 import { authorize, describeSchedule, formatClock } from '../../core/authorization/engine'
 import type { Schedule } from '../../core/authorization/types'
@@ -48,7 +49,7 @@ export function FamilyApp() {
   const session = useSession()
   const [params, setParams] = useSearchParams()
   const selected = family.find((m) => m.id === params.get('open')) ?? null
-  const isParent = family.some((m) => m.role === 'parent' && m.identityId === session.identityId)
+  const isParent = family.some((m) => m.role === 'parent' && identityService.isSameAccount(m.identityId, session.identityId))
 
   return (
     <>
@@ -295,7 +296,7 @@ export function FamilyScreen() {
   const family = useSuite((s) => s.family)
   const addUsage = useSuite((s) => s.addUsage)
   const log = useSuite((s) => s.log)
-  const member = p.who && p.who !== 'unknown' ? family.find((m) => m.identityId === (p.who as { identityId: string }).identityId) : undefined
+  const member = p.who && p.who !== 'unknown' ? family.find((m) => identityService.isSameAccount(m.identityId, (p.who as { identityId: string }).identityId)) : undefined
   const stranger = p.faces !== 'none' && (p.who === 'unknown' || (p.who && !member))
 
   // Count screen time only while an allowed kid is present and looking.
