@@ -97,6 +97,14 @@ The office and hotel products share layers 1–5 and the terminal UI. Each one o
 - Every access attempt is logged with its decision and reason, never with biometric data.
 - For a real deployment, swap the IndexedDB vault for a server-side store (e.g. Supabase or Postgres) with KMS-managed keys, or keep matching on-device.
 
+### Look-alikes (siblings)
+
+A webcam decides on a whole-face, eye-levelled embedding, so close relatives who never enrolled are the main false-accept risk. Three defenses:
+
+- **Strict defaults:** accept distance 0.42, a 0.06 margin over the runner-up, and at least 75% of probe samples must pass individually (not only the median).
+- **Look-alike tuning** (`/lab/lookalike`): scan the owner, then the look-alike. The limit is set just above the owner's own scores.
+- **Enroll both people:** every scan is compared against both, and only a clear winner is accepted. Signing up with a different name than a similar-looking account defaults to creating that person's own account.
+
 ### Swapping in iris hardware
 
 `FutureIrisHardwareSensor` speaks a small JSON protocol to a local device bridge (`ws://localhost:7447/optic`, documented in the file). To use real hardware:

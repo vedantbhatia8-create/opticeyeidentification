@@ -4,7 +4,8 @@
  * Decision rule (webcam prototype):
  *   The face-region embedding is the discriminative signal a consumer webcam
  *   can reliably provide, so the accept/reject decision is made on embedding
- *   distance with a margin against the runner-up identity. Iris texture and
+ *   distance with a margin against the runner-up identity, and most probe
+ *   samples must individually pass (not only the median). Iris texture and
  *   ocular geometry contribute to the fused confidence shown to operators.
  *   With NIR iris hardware the iris Hamming distance would become the
  *   primary decision signal (typical threshold ≈ 0.32).
@@ -20,6 +21,8 @@ export interface MatchPolicy {
   minMargin: number
   /** Minimum good probe samples needed to decide at all. */
   minProbeSamples: number
+  /** Fraction of probe samples that must each be within acceptDistance (not just the median). */
+  minAgreement: number
 }
 
 /**
@@ -31,6 +34,7 @@ export const DEFAULT_MATCH_POLICY: MatchPolicy = {
   acceptDistance: 0.42,
   minMargin: 0.06,
   minProbeSamples: 3,
+  minAgreement: 0.75,
 }
 
 export function compareProbe(probe: BiometricSample[], template: OpticTemplate): MatchScore {
@@ -73,7 +77,7 @@ export function compareProbe(probe: BiometricSample[], template: OpticTemplate):
   const sGeometry = geometryDeviation === null ? sEmbedding : logistic(geometryDeviation, 3, 0.8)
   return {
     similarity: clamp(0.82 * sEmbedding + 0.12 * sIris + 0.06 * sGeometry),
-    components: { embeddingDistance, irisHamming, geometryDeviation },
+    components: { embeddingDistance, irisHamming, geometryDeviation, sampleDistances: perSample },
   }
 }
 
@@ -130,7 +134,10 @@ export function identify(
 
   const d = best.score.components.embeddingDistance
   const margin = runnerUp ? runnerUp.score.components.embeddingDistance - d : Infinity
-  if (d <= policy.acceptDistance && margin >= policy.minMargin) {
+  const perSample = best.score.components.sampleDistances ?? [d]
+  const agreeing = perSample.filter((x) => x <= policy.acceptDistance).length
+  const consensus = agreeing >= Math.ceil(perSample.length * (policy.minAgreement ?? 0))
+  if (d <= policy.acceptDistance && margin >= policy.minMargin && consensus) {
     return { status: 'verified', match: best, runnerUp, probeCount: good.length }
   }
   return { status: 'not-recognized', best, probeCount: good.length }

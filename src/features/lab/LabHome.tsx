@@ -48,6 +48,17 @@ export function LabHome() {
           testId="lab-authenticate"
         />
       </div>
+      <Link
+        to="/lab/lookalike"
+        className="mt-4 flex items-center justify-between rounded-2xl border border-line bg-surface px-5 py-4 text-[13.5px] shadow-[var(--shadow-card)] hover:border-line-strong"
+        data-testid="lab-lookalike"
+      >
+        <span>
+          <span className="font-semibold text-ink">Someone else gets recognized as you?</span>{' '}
+          <span className="text-muted">Look-alike tuning measures you and them, and tightens the match limit.</span>
+        </span>
+        <span className="shrink-0 text-accent-text">Tune →</span>
+      </Link>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <Stat label="Your enrolled identities" value={real.length} />

@@ -10,7 +10,7 @@
  * fingerprint). Decrypted templates are only exposed through the explicit
  * `inspectScan` call used by the Optic Lab's representation viewer.
  */
-import { DEFAULT_MATCH_POLICY, identify, type IdentificationResult, type MatchPolicy } from '../biometric/matcher'
+import { compareProbe, DEFAULT_MATCH_POLICY, identify, type IdentificationResult, type MatchPolicy } from '../biometric/matcher'
 import { syntheticTemplate } from '../biometric/synthetic'
 import { templateSizeBytes } from '../biometric/template'
 import type { BiometricSample, OpticTemplate } from '../biometric/types'
@@ -326,6 +326,24 @@ export class IdentityService {
   }
 
   // ── Verification ─────────────────────────────────────────────────────────
+  /** Embedding distance from a probe to one account (best over its scans); used by look-alike tuning. */
+  async distanceTo(probe: BiometricSample[], identityId: string): Promise<number | null> {
+    const { key } = await this.requireReady()
+    const ids = new Set(this.accountIds(identityId))
+    let best: number | null = null
+    for (const scan of this.scans.values()) {
+      if (!ids.has(scan.identityId)) continue
+      let template = this.templateCache.get(scan.id)
+      if (!template) {
+        template = await unseal<OpticTemplate>(key, scan.sealed)
+        this.templateCache.set(scan.id, template)
+      }
+      const d = compareProbe(probe, template).components.embeddingDistance
+      if (Number.isFinite(d) && (best === null || d < best)) best = d
+    }
+    return best
+  }
+
   async verify(probe: BiometricSample[], policy: MatchPolicy = DEFAULT_MATCH_POLICY): Promise<IdentityVerification> {
     const { key, store } = await this.requireReady()
     const canonicalIds = new Map<string, string>()

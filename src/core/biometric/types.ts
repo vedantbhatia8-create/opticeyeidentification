@@ -82,6 +82,8 @@ export interface MatchComponents {
   irisHamming: number | null
   /** Normalised geometry deviation, null if unavailable. */
   geometryDeviation: number | null
+  /** Per-probe-sample embedding distances (the decision needs most of them to agree). */
+  sampleDistances?: number[]
 }
 
 export interface MatchScore {

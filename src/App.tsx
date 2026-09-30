@@ -26,6 +26,7 @@ import {
 import { ArchitecturePage } from './features/lab/ArchitecturePage'
 import { EnrollPage } from './features/lab/EnrollPage'
 import { LabAuthenticate } from './features/lab/LabAuthenticate'
+import { LookAlikeTuning } from './features/lab/LookAlikeTuning'
 import { LabHome } from './features/lab/LabHome'
 import { LabLayout } from './features/lab/LabLayout'
 import { LabScans } from './features/lab/LabScans'
@@ -104,6 +105,7 @@ export function App() {
         </Route>
         <Route path="/lab/enroll" element={<EnrollPage />} />
         <Route path="/lab/authenticate" element={<LabAuthenticate />} />
+        <Route path="/lab/lookalike" element={<LookAlikeTuning />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>
