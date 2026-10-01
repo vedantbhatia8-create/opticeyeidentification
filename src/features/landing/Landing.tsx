@@ -140,6 +140,21 @@ export function Landing() {
             </Link>
           ))}
         </div>
+        <Link
+          to="/apps/extension"
+          className="glass hairline group mt-4 flex flex-wrap items-center justify-between gap-3 rounded-3xl px-5 py-4 transition hover:-translate-y-0.5"
+        >
+          <span className="flex items-center gap-3">
+            <IconChip icon={<ScanEye className="size-5" />} />
+            <span>
+              <span className="block text-[15px] font-semibold">Optic for Google sign-in</span>
+              <span className="block text-[13px] text-muted">A Chrome extension: every “Sign in with Google”, on any website, asks for a glance first.</span>
+            </span>
+          </span>
+          <span className="flex items-center gap-1 text-[13px] font-medium text-accent-text">
+            Get the extension <ArrowUpRight className="size-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
+        </Link>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {[
             ['Sign up once', 'Enroll your eyes with a webcam and your email. That is your whole account.'],

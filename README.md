@@ -120,6 +120,17 @@ Identity, authorization, access control and the UI stay unchanged. Templates are
   - blocked and missing cameras show recovery screens;
   - every scenario in `/demo` produces the expected decision.
 
+## Optic for Google sign-in (Chrome extension)
+
+`extension/` is a Manifest V3 extension (Chrome, Edge, Brave, Arc). Every "Sign in with Google" on any website goes through Google's sign-in page; the extension covers that page with an Optic prompt until you verify with a glance.
+
+1. `google.js` (on `accounts.google.com`, OAuth / One Tap pages only) shows the prompt and asks the background worker for a check.
+2. `background.js` opens a small window at `<optic site>/verify?nonce=…` and remembers which tab asked.
+3. The `/verify` page runs a 1:N glance with your real eyes (Demo Mode is switched off there) and posts the result; `bridge.js`, which runs only on the Optic origin, relays it.
+4. The worker checks the nonce, the sender's origin and the locked account (your first successful glance locks the extension to you), then lets Google continue or keeps it blocked. A verification is honored for 3 minutes, so multi-page Google flows don't ask twice.
+
+`sites.js` shows a one-time notice on websites that offer Google sign-in. The extension never reads passwords, cookies or Google tokens. Install: download `/downloads/optic-access-extension.zip` from the Extension page (`/apps/extension`), unzip, then `chrome://extensions`, then Developer mode, then Load unpacked. After changing anything in `extension/`, run `npm run pack:extension` to rebuild the icons and the zip.
+
 ## Design
 
 Dark-first "optic" theme across every page: deep-space background with a faint grid and cyan/violet glows, translucent panels, gradient hairline borders and glowing primary actions. Only the home page uses blurred, animated glows. Pages that show the camera use plain gradients instead, because blurred animated layers behind live video break video compositing.

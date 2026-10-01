@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Camera, EyeOff, FlaskConical, Lock, LogOut, Menu, ScanEye, UserX } from 'lucide-react'
+import { Camera, EyeOff, FlaskConical, Lock, LogOut, Menu, Puzzle, ScanEye, UserX } from 'lucide-react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { identityService } from '../../core/identity/IdentityService'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -70,6 +70,9 @@ export function SuiteLayout() {
           </NavLink>
         ))}
         <div className="px-2.5 pt-5 pb-1.5 font-mono text-[10px] tracking-[0.18em] text-subtle uppercase">Tools</div>
+        <NavLink to="/apps/extension" className={({ isActive }) => sideNavClass(isActive)} data-testid="nav-extension">
+          {({ isActive }) => <SideNavContent icon={Puzzle} label="Google sign-in" active={isActive} />}
+        </NavLink>
         <NavLink to="/lab" className={({ isActive }) => sideNavClass(isActive)}>
           {({ isActive }) => <SideNavContent icon={FlaskConical} label="Sensor Lab" active={isActive} />}
         </NavLink>

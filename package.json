@@ -12,7 +12,8 @@
     "lint": "oxlint",
     "test": "vitest run",
     "typecheck": "tsc -b",
-    "postinstall": "node scripts/setup-assets.mjs"
+    "postinstall": "node scripts/setup-assets.mjs",
+    "pack:extension": "node scripts/extension-icons.mjs && rm -f public/downloads/optic-access-extension.zip && mkdir -p public/downloads && cd extension && zip -qr -X ../public/downloads/optic-access-extension.zip ."
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

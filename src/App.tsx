@@ -27,6 +27,8 @@ import { ArchitecturePage } from './features/lab/ArchitecturePage'
 import { EnrollPage } from './features/lab/EnrollPage'
 import { LabAuthenticate } from './features/lab/LabAuthenticate'
 import { LookAlikeTuning } from './features/lab/LookAlikeTuning'
+import { ExtensionPage } from './features/extension/ExtensionPage'
+import { VerifyPage } from './features/extension/VerifyPage'
 import { LabHome } from './features/lab/LabHome'
 import { LabLayout } from './features/lab/LabLayout'
 import { LabScans } from './features/lab/LabScans'
@@ -106,6 +108,7 @@ export function App() {
         <Route path="/lab/enroll" element={<EnrollPage />} />
         <Route path="/lab/authenticate" element={<LabAuthenticate />} />
         <Route path="/lab/lookalike" element={<LookAlikeTuning />} />
+        <Route path="/verify" element={<VerifyPage />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>
@@ -155,6 +158,7 @@ export function App() {
             <Route path="attendance" element={<AttendanceApp />} />
             <Route path="approvals" element={<SuiteActivity />} />
             <Route path="account" element={<AccountPage />} />
+            <Route path="extension" element={<ExtensionPage />} />
           </Route>
         </Route>
 
