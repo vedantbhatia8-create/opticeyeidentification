@@ -146,7 +146,7 @@ export const PRINCIPLES = [
   { icon: UserX, title: 'Administrators can revoke', body: 'Suspend people, end visits, check out guests, lock down doors, or delete identities — effective on the next attempt.' },
   { icon: ListChecks, title: 'Every attempt is logged', body: 'Granted, denied, unrecognized and failed reads are all audited — with reasons, never with biometrics.' },
   { icon: KeyRound, title: 'Biometrics hidden from admins', body: 'Consoles show enrollment status and a non-reversible fingerprint only. Templates can’t be viewed or exported here.' },
-  { icon: Lock, title: 'Stays on this device', body: 'A Content-Security-Policy blocks all outbound connections, including third-party runtime telemetry.' },
+  { icon: Lock, title: 'Biometrics stay on this device', body: 'Your optic scans never leave the browser. A Content-Security-Policy blocks third-party telemetry; only your own Optic backend is reachable, and only for syncing devices — never biometrics.' },
 ]
 
 export function SettingsPage({ site }: { site: 'office' | 'hotel' }) {

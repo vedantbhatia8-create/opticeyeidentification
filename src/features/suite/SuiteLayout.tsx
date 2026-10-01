@@ -8,6 +8,8 @@ import { Logo } from '../../ui/Logo'
 import { Avatar, cx } from '../../ui/primitives'
 import { DemoLauncher } from '../demo/DemoPanel'
 import { useIsAdmin } from '../admin/admin'
+import { startDeviceAgent } from '../devices/agent'
+import { RemoteLockOverlay } from '../devices/RemoteLockOverlay'
 import { SideNavContent, sideNavClass } from '../shell/ConsoleLayout'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { SUITE_NAV } from './apps'
@@ -55,6 +57,11 @@ export function SuiteLayout() {
   useEffect(() => setMobileOpen(false), [location.pathname])
   useProfileTheme(session.identityId)
   const isAdmin = useIsAdmin()
+  useEffect(() => {
+    if (!session.identityId) return
+    const stop = startDeviceAgent()
+    return stop
+  }, [session.identityId])
 
   if (!session.identityId) return <Navigate to={`/apps/signin?next=${encodeURIComponent(location.pathname)}`} replace />
 
@@ -110,6 +117,7 @@ export function SuiteLayout() {
 
   return (
     <div className="relative isolate min-h-screen bg-bg">
+      <RemoteLockOverlay />
       <Backdrop />
       <aside className="panel fixed inset-y-3 left-3 bg-surface/90 z-30 hidden w-[236px] overflow-hidden rounded-3xl lg:block">{sidebar}</aside>
       <AnimatePresence>

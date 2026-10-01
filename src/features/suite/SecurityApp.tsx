@@ -4,6 +4,7 @@ import { formatDateTime, timeAgo } from '../../ui/format'
 import { Badge, Button, Card, CardHeader, EmptyState } from '../../ui/primitives'
 import { PageHeader } from '../shell/ConsoleLayout'
 import { clearBreakins, listBreakins, type Breakin } from './breakins'
+import { DevicesPanel } from '../devices/DevicesPanel'
 import { useSuite } from './store'
 
 /** Break-in log + stranger alerts: who was seen at your screen, and every refused attempt. */
@@ -47,6 +48,10 @@ export function SecurityApp() {
         <Stat label="Stranger sightings" value={strangers.length} tone={strangers.length ? 'bad' : 'ok'} icon={<UserX className="size-4" />} />
         <Stat label="Refused attempts" value={refused.filter((e) => !e.ok).length} icon={<ShieldAlert className="size-4" />} />
         <Stat label="Protection" value="On" tone="ok" icon={<ShieldCheck className="size-4" />} />
+      </div>
+
+      <div className="mt-4">
+        <DevicesPanel />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_1fr]">
