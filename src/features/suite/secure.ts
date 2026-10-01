@@ -41,12 +41,15 @@ interface SealedRecord {
 
 export interface VaultItem {
   id: string
-  type: 'login' | 'note'
+  type: 'login' | 'note' | 'totp'
   title: string
   username?: string
   password?: string
   url?: string
   body?: string
+  /** 2FA (TOTP): base32 secret + optional issuer, for type 'totp'. */
+  secret?: string
+  issuer?: string
   updatedAt: number
 }
 

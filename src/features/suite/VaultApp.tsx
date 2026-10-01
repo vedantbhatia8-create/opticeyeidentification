@@ -18,9 +18,9 @@ import {
 } from './secure'
 import { useSession, useSuite } from './store'
 
-const AUTO_LOCK_MS = 5 * 60_000
+export const AUTO_LOCK_MS = 5 * 60_000
 /** Unlocked vault keys live only in memory, per identity, and expire. */
-const openVaults = new Map<string, { key: CryptoKey; until: number }>()
+export const openVaults = new Map<string, { key: CryptoKey; until: number }>()
 
 export function lockAllVaults() {
   openVaults.clear()
@@ -137,7 +137,7 @@ function PinInput({ value, onChange, autoFocus, testId }: { value: string; onCha
 
 type GlanceFn = ReturnType<typeof useGlance>
 
-function SetupVault({ me, glance, onDone }: { me: string; glance: GlanceFn; onDone: (k: CryptoKey) => void }) {
+export function SetupVault({ me, glance, onDone }: { me: string; glance: GlanceFn; onDone: (k: CryptoKey) => void }) {
   const [pin, setPin] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -178,7 +178,7 @@ function SetupVault({ me, glance, onDone }: { me: string; glance: GlanceFn; onDo
   )
 }
 
-function UnlockVault({ me, glance, onDone }: { me: string; glance: GlanceFn; onDone: (k: CryptoKey) => void }) {
+export function UnlockVault({ me, glance, onDone }: { me: string; glance: GlanceFn; onDone: (k: CryptoKey) => void }) {
   const [step, setStep] = useState<'glance' | 'pin'>('glance')
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)

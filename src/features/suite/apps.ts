@@ -1,4 +1,4 @@
-import { CircleUserRound, ClipboardCheck, Home, KeyRound, ListChecks, Mail, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
+import { CircleUserRound, ClipboardCheck, Home, KeyRound, ListChecks, Mail, ShieldCheck, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
 import type { AppId } from './store'
 
 export interface SuiteApp {
@@ -12,6 +12,7 @@ export interface SuiteApp {
 
 export const SUITE_APPS: SuiteApp[] = [
   { id: 'vault', name: 'Vault', to: '/apps/vault', icon: KeyRound, tagline: 'Passwords and secure notes, unlocked with a glance + PIN', combines: 'Password manager · Secure notes · Approve' },
+  { id: 'authenticator', name: 'Authenticator', to: '/apps/auth', icon: ShieldCheck, tagline: '2FA codes revealed only on a glance', combines: 'TOTP 2FA · Google Authenticator-compatible' },
   { id: 'eyes-only', name: 'Mail', to: '/apps/mail', icon: Mail, tagline: 'Sealed email only the recipient can read — plus eyes-only documents', combines: 'Eyes-only mail · Eyes-only documents · Secure sharing' },
   { id: 'guard', name: 'Guard', to: '/apps/guard', icon: ShieldHalf, tagline: 'Locks when you leave, blurs when someone looks', combines: 'Walk-away lock · Shoulder-surf shield' },
   { id: 'family', name: 'Family', to: '/apps/family', icon: Users, tagline: 'Screen time and profiles that follow whoever sits down', combines: 'Screen Time · Shared screen · Profiles · Kids launcher' },

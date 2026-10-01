@@ -58,6 +58,7 @@ import { PresenceProvider } from './features/suite/presence'
 import { SignIn } from './features/suite/SignIn'
 import { SuiteLayout } from './features/suite/SuiteLayout'
 import { VaultApp } from './features/suite/VaultApp'
+import { AuthenticatorApp } from './features/suite/AuthenticatorApp'
 import { initServices } from './state/services'
 import { useStore } from './state/store'
 
@@ -157,6 +158,7 @@ export function App() {
           <Route element={<SuiteLayout />}>
             <Route index element={<SuiteHome />} />
             <Route path="vault" element={<VaultApp />} />
+            <Route path="auth" element={<AuthenticatorApp />} />
             <Route path="mail" element={<MailApp />} />
             <Route path="eyes-only" element={<Navigate to="/apps/mail?tab=documents" replace />} />
             <Route path="guard" element={<GuardApp />} />
