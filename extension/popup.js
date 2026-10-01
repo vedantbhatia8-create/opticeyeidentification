@@ -14,6 +14,12 @@ async function render() {
   if (document.activeElement !== $('url')) $('url').value = s.opticUrl
 }
 
+$('passwords').addEventListener('click', async () => {
+  await chrome.runtime.sendMessage({ type: 'optic:open-passwords' })
+  window.close()
+})
+if (!/Mac/i.test(navigator.platform)) $('kbd').textContent = 'Ctrl+Shift+Y'
+
 $('enabled').addEventListener('click', async () => {
   const { enabled = true } = await chrome.storage.sync.get('enabled')
   await chrome.storage.sync.set({ enabled: !enabled })

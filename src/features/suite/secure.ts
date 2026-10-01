@@ -263,3 +263,21 @@ export async function reassignSuiteRecords(targetId: string, sourceIds: string[]
 export async function purgeSuiteSecrets() {
   await (await store()).clear(STORES.suite)
 }
+
+// ── Quick passwords (/p): glance-only unlock on this device ─────────────────
+// After one PIN unlock, the vault key (non-extractable, so its bytes can never
+// be read back) is kept in this browser's IndexedDB. /p hands it out only
+// after a live optic match for the vault's owner.
+const quickKeyId = (identityId: string) => `vault-quick:${identityId}`
+
+export async function rememberVaultKey(identityId: string, key: CryptoKey) {
+  await (await store()).put(STORES.keys, key, quickKeyId(identityId))
+}
+
+export async function rememberedVaultKey(identityId: string): Promise<CryptoKey | null> {
+  return (await (await store()).get<CryptoKey>(STORES.keys, quickKeyId(identityId))) ?? null
+}
+
+export async function forgetVaultKey(identityId: string) {
+  await (await store()).delete(STORES.keys, quickKeyId(identityId))
+}

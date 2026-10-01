@@ -21,8 +21,8 @@ export function ExtensionPage() {
   return (
     <div>
       <PageHeader
-        title="Optic for Google sign-in"
-        description="A Chrome extension that asks for a glance every time a website wants you to “Sign in with Google”. If it isn’t you, Google never continues."
+        title="Optic Access extension"
+        description="Glance to pull any password from your Vault (⌘⇧Y, or the toolbar button), and verify it’s you before every “Sign in with Google”."
         actions={
           version ? (
             <Badge tone="ok" dot>Installed · v{version}</Badge>

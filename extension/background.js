@@ -120,3 +120,17 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
   await chrome.storage.session.set({ pending: session.pending })
   await notifyTab(p, { type: 'optic:cancelled' })
 })
+
+// ── Passwords: glance, then search and copy from your Optic Vault ───────────
+// The vault stays encrypted on the Optic site; this opens its glance-to-unlock
+// window (/p). Shortcut: Cmd/Ctrl+Shift+Y, or the button in the toolbar popup.
+async function openPasswords() {
+  const { opticUrl } = await getSettings()
+  await chrome.windows.create({ url: `${opticUrl.replace(/\/$/, '')}/p`, type: 'popup', width: 720, height: 820, focused: true })
+}
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'open-passwords') void openPasswords()
+})
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === 'optic:open-passwords') void openPasswords()
+})

@@ -30,6 +30,7 @@ import { LabAuthenticate } from './features/lab/LabAuthenticate'
 import { LookAlikeTuning } from './features/lab/LookAlikeTuning'
 import { ExtensionPage } from './features/extension/ExtensionPage'
 import { VerifyPage } from './features/extension/VerifyPage'
+import { QuickPasswords } from './features/suite/QuickPasswords'
 import { LabHome } from './features/lab/LabHome'
 import { LabLayout } from './features/lab/LabLayout'
 import { LabScans } from './features/lab/LabScans'
@@ -111,6 +112,7 @@ export function App() {
         <Route path="/lab/authenticate" element={<LabAuthenticate />} />
         <Route path="/lab/lookalike" element={<LookAlikeTuning />} />
         <Route path="/verify" element={<VerifyPage />} />
+        <Route path="/p" element={<QuickPasswords />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>
