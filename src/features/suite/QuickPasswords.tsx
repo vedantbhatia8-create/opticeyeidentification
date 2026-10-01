@@ -1,7 +1,19 @@
-import { Check, Copy, Eye, EyeOff, KeyRound, Lock, Search } from 'lucide-react'
+import { Check, Copy, Eye, EyeOff, KeyRound, Lock, LogIn, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useStore } from '../../state/store'
+
+/** In embed mode (inside the extension's in-tab panel) a message to the page's
+ * own window is picked up by the extension's bridge script in the same frame and
+ * routed, through the extension only, to the host page's filler — the password
+ * never passes through the host page's own scripts. */
+function postToExtension(type: string, data: Record<string, string> = {}) {
+  try {
+    window.postMessage({ source: 'optic-access', type, ...data }, window.location.origin)
+  } catch {
+    /* not embedded */
+  }
+}
 import { OpticTerminal } from '../sensor/OpticTerminal'
 import { TerminalShell } from '../sensor/TerminalShell'
 import { forgetVaultKey, hasVault, listVaultItems, rememberedVaultKey, rememberVaultKey, unlockVault, WrongPinError, type VaultItem } from './secure'
@@ -17,6 +29,8 @@ type Phase =
 /** Quick passwords: one glance, then search and copy any password from your Vault. */
 export function QuickPasswords() {
   const setDemo = useStore((s) => s.setDemo)
+  const [params] = useSearchParams()
+  const embed = params.get('embed') === '1'
   const [phase, setPhase] = useState<Phase>({ kind: 'scan' })
 
   // Real eyes only: never a demo person.
@@ -69,7 +83,7 @@ export function QuickPasswords() {
           </Link>
         </div>
       )}
-      {phase.kind === 'open' && <PasswordList name={phase.name} items={phase.items} onLock={() => setPhase({ kind: 'scan' })} />}
+      {phase.kind === 'open' && <PasswordList name={phase.name} items={phase.items} embed={embed} onLock={() => setPhase({ kind: 'scan' })} />}
     </TerminalShell>
   )
 }
@@ -116,7 +130,7 @@ function PinOnce({ name, onUnlock }: { name: string; onUnlock: (pin: string) => 
   )
 }
 
-function PasswordList({ name, items, onLock }: { name: string; items: VaultItem[]; onLock: () => void }) {
+function PasswordList({ name, items, embed, onLock }: { name: string; items: VaultItem[]; embed?: boolean; onLock: () => void }) {
   const [q, setQ] = useState('')
   const [shown, setShown] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
@@ -149,11 +163,18 @@ function PasswordList({ name, items, onLock }: { name: string; items: VaultItem[
     setTimeout(() => setCopied((c) => (c === id ? null : c)), 1500)
   }
 
+  /** Fill the current web page's login fields with this item, then close the panel. */
+  const fill = (i: VaultItem) => {
+    postToExtension('optic-fill', { username: i.username ?? '', password: i.password ?? '' })
+    setTimeout(() => postToExtension('optic-close'), 250)
+  }
+
   return (
     <div className="mt-6 w-full max-w-2xl" data-testid="quick-list">
       <div className="flex items-center justify-between gap-3">
         <div className="text-[13px] text-white/60">
-          Unlocked for <b className="text-white">{name}</b> · locks after 1 min idle
+          Unlocked for <b className="text-white">{name}</b>
+          {embed ? ' · pick one to fill this page' : ' · locks after 1 min idle'}
         </div>
         <button onClick={onLock} className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-[12px] text-white/60 hover:text-white">
           <Lock className="size-3.5" /> Lock
@@ -169,10 +190,13 @@ function PasswordList({ name, items, onLock }: { name: string; items: VaultItem[
           className="h-full flex-1 bg-transparent text-[15px] text-white outline-none placeholder:text-white/35"
           data-testid="quick-search"
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && results[0]) void copy(`${results[0].id}:pw`, results[0].password)
+            if (e.key === 'Enter' && results[0]) {
+              if (embed) fill(results[0])
+              else void copy(`${results[0].id}:pw`, results[0].password)
+            }
           }}
         />
-        <span className="hidden font-mono text-[10.5px] text-white/35 sm:inline">ENTER copies top result</span>
+        <span className="hidden font-mono text-[10.5px] text-white/35 sm:inline">ENTER {embed ? 'fills top result' : 'copies top result'}</span>
       </label>
       <ul className="mt-3 space-y-2">
         {results.map((i) => (
@@ -186,19 +210,31 @@ function PasswordList({ name, items, onLock }: { name: string; items: VaultItem[
             <button onClick={() => setShown(shown === i.id ? null : i.id)} className="rounded-lg p-2 text-white/50 hover:text-white" aria-label="Show password">
               {shown === i.id ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
-            {i.username && (
-              <button onClick={() => void copy(`${i.id}:user`, i.username)} className="h-9 rounded-xl border border-white/10 px-3 text-[12.5px] text-white/75 hover:border-accent/50">
-                {copied === `${i.id}:user` ? 'Copied' : 'User'}
+            {embed ? (
+              <button
+                onClick={() => fill(i)}
+                className="btn-glow flex h-9 items-center gap-1.5 rounded-xl px-3 text-[12.5px] font-semibold"
+                data-testid="quick-fill"
+              >
+                <LogIn className="size-3.5" /> Fill
               </button>
+            ) : (
+              <>
+                {i.username && (
+                  <button onClick={() => void copy(`${i.id}:user`, i.username)} className="h-9 rounded-xl border border-white/10 px-3 text-[12.5px] text-white/75 hover:border-accent/50">
+                    {copied === `${i.id}:user` ? 'Copied' : 'User'}
+                  </button>
+                )}
+                <button
+                  onClick={() => void copy(`${i.id}:pw`, i.password)}
+                  className="btn-glow flex h-9 items-center gap-1.5 rounded-xl px-3 text-[12.5px] font-semibold"
+                  data-testid="quick-copy"
+                >
+                  {copied === `${i.id}:pw` ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copied === `${i.id}:pw` ? 'Copied' : 'Password'}
+                </button>
+              </>
             )}
-            <button
-              onClick={() => void copy(`${i.id}:pw`, i.password)}
-              className="btn-glow flex h-9 items-center gap-1.5 rounded-xl px-3 text-[12.5px] font-semibold"
-              data-testid="quick-copy"
-            >
-              {copied === `${i.id}:pw` ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-              {copied === `${i.id}:pw` ? 'Copied' : 'Password'}
-            </button>
           </li>
         ))}
         {results.length === 0 && (

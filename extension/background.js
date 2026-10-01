@@ -121,16 +121,45 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
   await notifyTab(p, { type: 'optic:cancelled' })
 })
 
-// ── Passwords: glance, then search and copy from your Optic Vault ───────────
-// The vault stays encrypted on the Optic site; this opens its glance-to-unlock
-// window (/p). Shortcut: Cmd/Ctrl+Shift+Y, or the button in the toolbar popup.
-async function openPasswords() {
+// ── Passwords: glance, then fill the current page from your Optic Vault ──────
+// The vault stays encrypted on the Optic site. We open an in-tab panel (an
+// iframe of <opticUrl>/p?embed=1) right on the active page via vault.js, so it
+// all happens in the same tab. If that tab can't host the panel (e.g. a
+// chrome:// page), fall back to a small window. Shortcut: Cmd/Ctrl+Shift+Y.
+async function openPasswords(tab) {
+  const target = tab ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]
+  if (target?.id != null) {
+    try {
+      await chrome.tabs.sendMessage(target.id, { type: 'optic:open-panel' })
+      return
+    } catch {
+      /* no content script on this page (chrome://, store, etc.) — fall back */
+    }
+  }
   const { opticUrl } = await getSettings()
   await chrome.windows.create({ url: `${opticUrl.replace(/\/$/, '')}/p`, type: 'popup', width: 720, height: 820, focused: true })
 }
-chrome.commands.onCommand.addListener((command) => {
-  if (command === 'open-passwords') void openPasswords()
+
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === 'open-passwords') void openPasswords(tab)
 })
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'optic:open-passwords') void openPasswords()
+
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg?.type === 'optic:open-passwords') {
+    void openPasswords()
+    return
+  }
+  // Fill / close come from the panel iframe (Optic origin). Route them to the
+  // TOP frame of the same tab, where vault.js fills the host page's form.
+  if (msg?.type === 'optic:fill' || msg?.type === 'optic:close-panel') {
+    getSettings().then((s) => {
+      if (!sender.url || new URL(sender.url).origin !== new URL(s.opticUrl).origin) return
+      if (sender.tab?.id == null) return
+      if (msg.type === 'optic:fill') {
+        chrome.tabs.sendMessage(sender.tab.id, { type: 'optic:do-fill', username: msg.username, password: msg.password }, { frameId: 0 }).catch(() => {})
+      } else {
+        chrome.tabs.sendMessage(sender.tab.id, { type: 'optic:close-panel' }, { frameId: 0 }).catch(() => {})
+      }
+    })
+  }
 })
