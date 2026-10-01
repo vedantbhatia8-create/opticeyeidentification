@@ -32,6 +32,7 @@ import { cx } from '../../ui/primitives'
 import { guidanceFor } from '../sensor/copy'
 import { useSensor, useSensorConfig } from '../sensor/hooks'
 import { SensorViewport } from '../sensor/SensorViewport'
+import { captureSnapshot, recordBreakin } from './breakins'
 import { useSession, useSuite, type AppId } from './store'
 
 export type Who = { identityId: string; name: string; confidence: number } | 'unknown' | null
@@ -105,6 +106,7 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
   obsRef.current = observation
   const busy = useRef(false)
   const pending = useRef<{ key: string; streak: number }>({ key: '', streak: 0 })
+  const lastBreakin = useRef(0)
   /**
    * Identity continuity: while the same face is tracked continuously we keep
    * its identity and only re-confirm periodically. Any break (face lost,
@@ -159,6 +161,22 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
         tr.identifiedGen = gen
         tr.identifiedAt = Date.now()
         const key = next === 'unknown' ? 'unknown' : next.identityId
+        // Break-in: a stranger at the screen while you're signed in. Record once, with a snapshot.
+        if (next === 'unknown') {
+          const owner = useSession.getState()
+          if (owner.identityId && Date.now() - lastBreakin.current > 25_000) {
+            lastBreakin.current = Date.now()
+            const snapshot = await captureSnapshot(sensor.getPreviewStream?.() ?? null)
+            void recordBreakin({
+              at: Date.now(),
+              reason: 'stranger',
+              app: (typeof location !== 'undefined' ? location.pathname.replace(/^\/apps\/?/, '') : '') || 'apps',
+              ownerId: owner.identityId,
+              ownerName: owner.name,
+              snapshot,
+            })
+          }
+        }
         pending.current = pending.current.key === key ? { key, streak: pending.current.streak + 1 } : { key, streak: 1 }
         setWho((prev) => {
           const prevKey = prev === null ? '' : prev === 'unknown' ? 'unknown' : prev.identityId

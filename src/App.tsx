@@ -59,6 +59,8 @@ import { SignIn } from './features/suite/SignIn'
 import { SuiteLayout } from './features/suite/SuiteLayout'
 import { VaultApp } from './features/suite/VaultApp'
 import { AuthenticatorApp } from './features/suite/AuthenticatorApp'
+import { SecurityApp } from './features/suite/SecurityApp'
+import { TotpTestPage } from './features/extension/TotpTestPage'
 import { initServices } from './state/services'
 import { useStore } from './state/store'
 
@@ -115,6 +117,7 @@ export function App() {
         <Route path="/lab/lookalike" element={<LookAlikeTuning />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/p" element={<QuickPasswords />} />
+        <Route path="/test/authenticator" element={<TotpTestPage />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>
@@ -159,6 +162,7 @@ export function App() {
             <Route index element={<SuiteHome />} />
             <Route path="vault" element={<VaultApp />} />
             <Route path="auth" element={<AuthenticatorApp />} />
+            <Route path="security" element={<SecurityApp />} />
             <Route path="mail" element={<MailApp />} />
             <Route path="eyes-only" element={<Navigate to="/apps/mail?tab=documents" replace />} />
             <Route path="guard" element={<GuardApp />} />
