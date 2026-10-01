@@ -53,21 +53,29 @@ export function MailApp() {
         }
       />
 
-      <div className="mb-4 inline-flex rounded-lg border border-line bg-surface p-0.5 shadow-[var(--shadow-card)]">
+      <div className="mb-4 inline-flex gap-0.5 rounded-xl border border-line bg-surface/70 p-1 shadow-[var(--shadow-card)] backdrop-blur">
         {(
           [
-            ['inbox', `Inbox${unread ? ` · ${unread}` : ''}`, 'mail-tab-inbox'],
-            ['sent', 'Sent', 'mail-tab-sent'],
-            ['documents', 'Documents', 'mail-tab-documents'],
+            ['inbox', 'Inbox', unread, 'mail-tab-inbox'],
+            ['sent', 'Sent', 0, 'mail-tab-sent'],
+            ['documents', 'Documents', 0, 'mail-tab-documents'],
           ] as const
-        ).map(([k, label, tid]) => (
+        ).map(([k, label, count, tid]) => (
           <button
             key={k}
             onClick={() => selectTab(k)}
             data-testid={tid}
-            className={cx('rounded-md px-3 py-1.5 text-[13px] font-medium transition', tab === k ? 'bg-surface-2 text-ink' : 'text-muted hover:text-ink')}
+            className={cx(
+              'flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-medium transition',
+              tab === k ? 'bg-accent-soft text-accent-text shadow-[var(--glow)]' : 'text-muted hover:bg-surface-2 hover:text-ink',
+            )}
           >
             {label}
+            {count > 0 && (
+              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold text-accent-contrast">
+                {count}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -119,24 +127,29 @@ function MessageRow({ msg, mode, refresh }: { msg: Meta; mode: 'inbox' | 'sent';
   const me = useSession((s) => s.identityId)
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2/50" data-testid="mail-item">
+    <div className={cx('relative flex items-center gap-3 py-3 pr-4 pl-5 transition hover:bg-surface-2/50', unread && 'bg-accent-soft/30')} data-testid="mail-item">
+      {unread && <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-accent" />}
       <Link to={`/apps/mail/view/${msg.id}`} className="flex min-w-0 flex-1 items-center gap-3">
         <span className="relative shrink-0">
-          <Avatar name={who} size={34} />
+          <Avatar name={who} size={38} />
           {unread && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-surface bg-accent" data-testid="mail-unread" />}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className={cx('truncate text-[13.5px]', unread ? 'font-semibold text-ink' : 'font-medium text-ink')}>{who}</span>
+            <span className={cx('truncate text-[14px]', unread ? 'font-semibold text-ink' : 'font-medium text-ink')}>{who}</span>
             {msg.docIds.length > 0 && <Paperclip className="size-3.5 shrink-0 text-subtle" />}
+            <span className="ml-auto shrink-0 text-[12px] text-subtle sm:hidden">{timeAgo(msg.createdAt)}</span>
           </div>
-          <div className={cx('truncate text-[13px]', unread ? 'text-ink' : 'text-muted')}>{msg.subject || '(no subject)'}</div>
+          <div className={cx('truncate text-[13px]', unread ? 'font-medium text-ink' : 'text-muted')}>{msg.subject || '(no subject)'}</div>
+          <div className="mt-0.5 flex items-center gap-1 text-[11.5px] text-subtle">
+            <Lock className="size-3" /> Sealed · opens only for {mode === 'inbox' ? 'your eyes' : 'the recipient'}
+          </div>
         </div>
       </Link>
       <Badge tone="accent" className="hidden sm:inline-flex">
         <Lock className="size-3" /> Eyes-only
       </Badge>
-      <span className="w-[72px] shrink-0 text-right text-[12px] text-subtle">{timeAgo(msg.createdAt)}</span>
+      <span className="hidden w-[72px] shrink-0 text-right text-[12px] text-subtle sm:block">{timeAgo(msg.createdAt)}</span>
       {mode === 'sent' && (
         <Button
           size="sm"

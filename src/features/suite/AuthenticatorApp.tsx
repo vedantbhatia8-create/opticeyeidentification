@@ -231,7 +231,22 @@ function AddCode({ me, vaultKey, onClose, onSaved }: { me: string; vaultKey: Cry
         <span className="font-mono"> otpauth://</span> link or the secret key.
       </p>
       <div className="mt-4 space-y-3">
-        <Input autoFocus value={raw} onChange={(e) => setRaw(e.target.value)} placeholder="otpauth://… or secret key" data-testid="auth-secret" />
+        <div className="flex gap-2">
+          <Input autoFocus value={raw} onChange={(e) => setRaw(e.target.value)} placeholder="otpauth://… or secret key" data-testid="auth-secret" className="flex-1" />
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              try {
+                const t = await navigator.clipboard.readText()
+                if (t) setRaw(t.trim())
+              } catch {
+                setError('Could not read the clipboard — paste into the box instead.')
+              }
+            }}
+          >
+            Paste
+          </Button>
+        </div>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Label (e.g. GitHub)" data-testid="auth-title" />
         {parsed && (
           <Badge tone="ok" dot>

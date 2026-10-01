@@ -34,6 +34,8 @@ export interface Settings {
   showDiagnostics: boolean
   /** Show the demo cast (Sarah Chen, the Chen family, hotel guests…) alongside real people. */
   demoPeople: boolean
+  /** Identity ids explicitly granted admin. The account owner (first enrolled) is always admin. */
+  adminIds: string[]
 }
 
 interface State {
@@ -99,6 +101,7 @@ const defaultSettings: Settings = {
   acceptDistance: DEFAULT_MATCH_POLICY.acceptDistance,
   showDiagnostics: false,
   demoPeople: false,
+  adminIds: [],
 }
 const defaultDemo: DemoSettings = { enabled: false, subject: null, clockOffsetMs: 0, overrideIdentityId: null }
 

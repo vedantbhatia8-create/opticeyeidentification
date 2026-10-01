@@ -11,19 +11,26 @@ export async function openCamera(): Promise<MediaStream> {
   if (!navigator.mediaDevices?.getUserMedia) {
     throw sensorError('unsupported', 'This browser does not expose a camera API.')
   }
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: 'user',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        frameRate: { ideal: 30 },
-      },
-    })
-  } catch (err) {
-    throw mapCameraError(err)
+  // Progressively relax constraints: some mobile front cameras reject the
+  // detailed request (OverconstrainedError) but accept a plain one.
+  const attempts: MediaStreamConstraints[] = [
+    { audio: false, video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } },
+    { audio: false, video: { facingMode: 'user' } },
+    { audio: false, video: true },
+  ]
+  let lastErr: unknown
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints)
+    } catch (err) {
+      lastErr = err
+      const name = (err as { name?: string })?.name ?? ''
+      // Only keep relaxing for constraint problems — a denied permission or a
+      // busy/missing device won't be fixed by a looser request.
+      if (name !== 'OverconstrainedError' && name !== 'ConstraintNotSatisfiedError') break
+    }
   }
+  throw mapCameraError(lastErr)
 }
 
 export function mapCameraError(err: unknown): SensorError {

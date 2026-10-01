@@ -60,6 +60,7 @@ import { SuiteLayout } from './features/suite/SuiteLayout'
 import { VaultApp } from './features/suite/VaultApp'
 import { AuthenticatorApp } from './features/suite/AuthenticatorApp'
 import { SecurityApp } from './features/suite/SecurityApp'
+import { AdminPage } from './features/suite/AdminPage'
 import { TotpTestPage } from './features/extension/TotpTestPage'
 import { OtherPage } from './features/other/OtherPage'
 import { initServices } from './state/services'
@@ -120,6 +121,7 @@ export function App() {
         <Route path="/p" element={<QuickPasswords />} />
         <Route path="/test/authenticator" element={<TotpTestPage />} />
         <Route path="/other" element={<OtherPage />} />
+        <Route path="/admin" element={<Navigate to="/apps/admin" replace />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>
@@ -173,6 +175,7 @@ export function App() {
             <Route path="attendance" element={<AttendanceApp />} />
             <Route path="approvals" element={<SuiteActivity />} />
             <Route path="account" element={<AccountPage />} />
+            <Route path="admin" element={<AdminPage />} />
             <Route path="extension" element={<ExtensionPage />} />
           </Route>
         </Route>

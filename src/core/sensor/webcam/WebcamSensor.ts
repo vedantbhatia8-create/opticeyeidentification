@@ -106,10 +106,28 @@ export class WebcamSensor implements BiometricSensor {
 
       const video = document.createElement('video')
       video.muted = true
+      video.defaultMuted = true
       video.playsInline = true
+      // iOS Safari attribute (the DOM property above is not always honored).
+      video.setAttribute('playsinline', '')
+      video.setAttribute('webkit-playsinline', '')
+      video.setAttribute('muted', '')
+      video.autoplay = true
+      // iOS Safari will not decode frames from a <video> that is detached from
+      // the document, which leaves videoWidth at 0 and the scan never completes.
+      // Keep it in the DOM but visually hidden and out of layout.
+      video.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px'
+      document.body.appendChild(video)
       video.srcObject = stream
       this.video = video
-      await video.play()
+      if (video.readyState < 1) {
+        await new Promise<void>((resolve) => {
+          const done = () => resolve()
+          video.addEventListener('loadedmetadata', done, { once: true })
+          setTimeout(done, 3000)
+        })
+      }
+      await video.play().catch(() => {})
 
       this.setStatus({ state: 'starting', detail: 'Loading optic models' })
       const [landmarker, embedder] = await models
@@ -141,6 +159,7 @@ export class WebcamSensor implements BiometricSensor {
     if (this.video) {
       this.video.pause()
       this.video.srcObject = null
+      this.video.remove()
       this.video = null
     }
     this.previousCenter = null

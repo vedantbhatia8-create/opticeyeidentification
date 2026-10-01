@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Camera, EyeOff, FlaskConical, Lock, LogOut, Menu, Puzzle, ScanEye, UserX, Zap } from 'lucide-react'
+import { Camera, EyeOff, FlaskConical, Lock, LogOut, Menu, Puzzle, ScanEye, ShieldHalf, UserX, Zap } from 'lucide-react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { identityService } from '../../core/identity/IdentityService'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { Backdrop } from '../../ui/Backdrop'
 import { Logo } from '../../ui/Logo'
 import { Avatar, cx } from '../../ui/primitives'
 import { DemoLauncher } from '../demo/DemoPanel'
+import { useIsAdmin } from '../admin/admin'
 import { SideNavContent, sideNavClass } from '../shell/ConsoleLayout'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { SUITE_NAV } from './apps'
@@ -53,6 +54,7 @@ export function SuiteLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   useEffect(() => setMobileOpen(false), [location.pathname])
   useProfileTheme(session.identityId)
+  const isAdmin = useIsAdmin()
 
   if (!session.identityId) return <Navigate to={`/apps/signin?next=${encodeURIComponent(location.pathname)}`} replace />
 
@@ -79,6 +81,11 @@ export function SuiteLayout() {
         <NavLink to="/lab" className={({ isActive }) => sideNavClass(isActive)}>
           {({ isActive }) => <SideNavContent icon={FlaskConical} label="Sensor Lab" active={isActive} />}
         </NavLink>
+        {isAdmin && (
+          <NavLink to="/apps/admin" className={({ isActive }) => sideNavClass(isActive)} data-testid="nav-admin">
+            {({ isActive }) => <SideNavContent icon={ShieldHalf} label="Admin" active={isActive} />}
+          </NavLink>
+        )}
       </nav>
       <div className="space-y-2 border-t border-line/70 p-3">
         <CameraPill />

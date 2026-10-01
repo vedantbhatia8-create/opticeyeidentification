@@ -78,6 +78,11 @@ export function SensorViewport({
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
+    // React does not reliably reflect the `muted` prop as an attribute, which
+    // iOS needs for inline autoplay — force it on the element.
+    v.muted = true
+    v.setAttribute('playsinline', '')
+    v.setAttribute('webkit-playsinline', '')
     if (v.srcObject !== stream) v.srcObject = stream
     if (stream) v.play().catch(() => {})
   }, [stream])
