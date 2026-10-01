@@ -1,4 +1,4 @@
-import { CircleUserRound, ClipboardCheck, Home, KeyRound, LayoutGrid, ListChecks, Mail, ShieldAlert, ShieldCheck, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
+import { CircleUserRound, ClipboardCheck, Home, KeyRound, LayoutGrid, Link2, ListChecks, Mail, ShieldAlert, ShieldCheck, ShieldHalf, Target, Users, type LucideIcon } from 'lucide-react'
 import type { AppId } from './store'
 
 export interface SuiteApp {
@@ -16,6 +16,7 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'eyes-only', name: 'Mail', to: '/apps/mail', icon: Mail, tagline: 'Sealed email only the recipient can read — plus eyes-only documents', combines: 'Eyes-only mail · Eyes-only documents · Secure sharing' },
   { id: 'guard', name: 'Guard', to: '/apps/guard', icon: ShieldHalf, tagline: 'Locks when you leave, blurs when someone looks', combines: 'Walk-away lock · Shoulder-surf shield' },
   { id: 'security', name: 'Security', to: '/apps/security', icon: ShieldAlert, tagline: 'Break-in log and stranger alerts, with snapshots', combines: 'Stranger alerts · Refused-attempt log' },
+  { id: 'connect', name: 'Connect', to: '/apps/connect', icon: Link2, tagline: 'Turn on Optic Access for any app you build, with a code', combines: 'Sign in with Optic · Connection codes · Drop-in SDK' },
 ]
 
 /** Parked for now — reachable from /other, not in the main nav. */

@@ -8,7 +8,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Schedule } from '../../core/authorization/types'
 import { DEMO_IDS, demoCast, isDemoRecord } from '../../domains/demoPeople'
 
-export type AppId = 'suite' | 'vault' | 'authenticator' | 'eyes-only' | 'guard' | 'family' | 'focus' | 'attendance' | 'approve' | 'security'
+export type AppId = 'suite' | 'vault' | 'authenticator' | 'eyes-only' | 'guard' | 'family' | 'focus' | 'attendance' | 'approve' | 'security' | 'connect'
 
 export interface SuiteEvent {
   id: string

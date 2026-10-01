@@ -61,6 +61,8 @@ import { VaultApp } from './features/suite/VaultApp'
 import { AuthenticatorApp } from './features/suite/AuthenticatorApp'
 import { SecurityApp } from './features/suite/SecurityApp'
 import { AdminPage } from './features/suite/AdminPage'
+import { ConnectApp } from './features/suite/ConnectApp'
+import { ConnectReturn } from './features/connect/ConnectReturn'
 import { TotpTestPage } from './features/extension/TotpTestPage'
 import { OtherPage } from './features/other/OtherPage'
 import { initServices } from './state/services'
@@ -107,6 +109,7 @@ export function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/demo" element={<DemoGuide />} />
         <Route path="/connect" element={<Connect />} />
+        <Route path="/connect/return" element={<ConnectReturn />} />
 
         {/* Phase 1 — Optic Sensor Lab */}
         <Route path="/lab" element={<LabLayout />}>
@@ -176,6 +179,7 @@ export function App() {
             <Route path="approvals" element={<SuiteActivity />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="connect" element={<ConnectApp />} />
             <Route path="extension" element={<ExtensionPage />} />
           </Route>
         </Route>

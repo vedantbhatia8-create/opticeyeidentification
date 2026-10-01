@@ -14,7 +14,9 @@ import { keyFor, safeReturnUrl, signChallenge } from './keys'
  */
 export function Connect() {
   const [params] = useSearchParams()
-  const app = (params.get('app') ?? 'An app').slice(0, 40)
+  const code = params.get('code') ?? ''
+  const connection = useStore((s) => s.connections.find((c) => c.code === code && !c.revoked))
+  const app = (connection?.name ?? params.get('app') ?? 'An app').slice(0, 40)
   const nonce = params.get('nonce') ?? ''
   const ret = safeReturnUrl(params.get('return'))
   const [error, setError] = useState<string | null>(null)
@@ -51,7 +53,8 @@ export function Connect() {
               done.current = true
               try {
                 const key = await keyFor(ret!.origin, who.id)
-                const sig = await signChallenge(key, `optic-connect|${ret!.origin}|${nonce}`)
+                const sig = await signChallenge(key, `optic-connect|${code || ret!.origin}|${nonce}`)
+                if (code) useStore.getState().touchConnection(code)
                 const back = new URL(ret!.toString())
                 back.searchParams.set('nonce', nonce)
                 back.searchParams.set('sig', sig)

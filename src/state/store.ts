@@ -38,6 +38,19 @@ export interface Settings {
   adminIds: string[]
 }
 
+/** A third-party app you've connected to Optic Access with a generated code. */
+export interface Connection {
+  id: string
+  /** The code you paste into the other app, e.g. optic_live_ab12… */
+  code: string
+  name: string
+  /** The app's origin (https://your-app.vercel.app) — signatures are bound to it. */
+  origin: string
+  createdAt: number
+  lastUsedAt: number | null
+  revoked: boolean
+}
+
 interface State {
   schema: number
   /** Start of the day the demo data was generated for. */
@@ -49,6 +62,8 @@ interface State {
   demo: DemoSettings
   /** Transient: resources currently held unlocked (resourceId → relock time). */
   unlocked: Record<string, number>
+  /** Apps connected to Optic Access via a generated code. */
+  connections: Connection[]
 }
 
 interface Actions {
@@ -71,12 +86,15 @@ interface Actions {
   setSettings(patch: Partial<Settings>): void
   setDemo(patch: Partial<DemoSettings>): void
   clearIdentityLinks(identityId: string): void
+  addConnection(c: Connection): void
+  removeConnection(id: string): void
+  touchConnection(code: string): void
   /** Adds (or refreshes) the demo cast's records; `false` removes them. */
   applyDemoPeople(on: boolean): void
   resetAll(): void
 }
 
-const SCHEMA = 7
+const SCHEMA = 8
 const RELOCK_MS = 6000
 
 function freshState(): Omit<State, 'settings' | 'demo'> {
@@ -92,7 +110,7 @@ function freshState(): Omit<State, 'settings' | 'demo'> {
     const room = hotel.rooms.find((r) => roomResourceId(r.number) === e.resourceId)
     if (room) room.lastAccess = { at: e.at, name: e.subjectName }
   }
-  return { schema: SCHEMA, seededDay: startOfDay(now), office, hotel, events, unlocked: {} }
+  return { schema: SCHEMA, seededDay: startOfDay(now), office, hotel, events, unlocked: {}, connections: [] }
 }
 
 const defaultSettings: Settings = {
@@ -235,6 +253,11 @@ export const useStore = create<State & Actions>()(
           },
         })),
 
+      addConnection: (c) => set((s) => ({ connections: [c, ...s.connections] })),
+      removeConnection: (id) => set((s) => ({ connections: s.connections.filter((c) => c.id !== id) })),
+      touchConnection: (code) =>
+        set((s) => ({ connections: s.connections.map((c) => (c.code === code ? { ...c, lastUsedAt: Date.now() } : c)) })),
+
       applyDemoPeople: (on) =>
         set((s) => {
           const now = Date.now()
@@ -278,12 +301,18 @@ export const useStore = create<State & Actions>()(
       version: SCHEMA,
       partialize: ({ unlocked: _u, ...rest }) => rest,
       migrate: (persisted, version) => {
-        // 5 → 6: stricter match threshold. 6 → 7: new dark-first look. Both keep all data.
-        if ((version === 5 || version === 6) && persisted && typeof persisted === 'object') {
+        // 5 → 6: stricter match threshold. 6 → 7: dark-first look. 7 → 8: admin roles
+        // + connected apps. All keep existing data; new fields get their defaults.
+        if (version >= 5 && persisted && typeof persisted === 'object') {
           const p = persisted as State
           const acceptDistance = p.settings.acceptDistance >= 0.5 ? defaultSettings.acceptDistance : p.settings.acceptDistance
           const theme = p.settings.theme === 'light' ? 'dark' : p.settings.theme
-          return { ...p, schema: SCHEMA, settings: { ...p.settings, acceptDistance, theme } } as unknown as State & Actions
+          return {
+            ...p,
+            schema: SCHEMA,
+            connections: p.connections ?? [],
+            settings: { ...defaultSettings, ...p.settings, acceptDistance, theme },
+          } as unknown as State & Actions
         }
         return { ...freshState(), settings: defaultSettings, demo: defaultDemo } as unknown as State & Actions
       },

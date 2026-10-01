@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarCheck2, Check, EyeOff, Fingerprint, KeyRound, Merge, Pencil, Plus, Target, Trash2, Users, X } from 'lucide-react'
+import { AlertTriangle, Check, Fingerprint, KeyRound, Mail, Merge, Pencil, Plus, ScanEye, ShieldAlert, ShieldCheck, ShieldHalf, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { normalizeEmail } from '../../core/identity/IdentityService'
@@ -11,6 +11,8 @@ import { Modal } from '../../ui/overlay'
 import { Avatar, Badge, Button, buttonClass, Card, CardHeader, cx, Input } from '../../ui/primitives'
 import { PageHeader } from '../shell/ConsoleLayout'
 import { useIdentities } from '../sensor/hooks'
+import { useIsAdmin } from '../admin/admin'
+import { listBreakins } from './breakins'
 import { useGlance } from './presence'
 import { accountRecordSummary, destroyVault } from './secure'
 import { useSession, useSuite } from './store'
@@ -28,6 +30,8 @@ export function AccountPage() {
   const myScans = scans.filter((s) => s.identityId === me)
   const suite = useSuite()
   const [records, setRecords] = useState({ hasVault: false, vaultItems: 0, docsOwned: 0, docsShared: 0 })
+  const [strangerCount, setStrangerCount] = useState(0)
+  const isAdmin = useIsAdmin()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState({ name: '', email: '' })
   const [notice, setNotice] = useState<string | null>(null)
@@ -36,6 +40,7 @@ export function AccountPage() {
   const refresh = useCallback(() => accountRecordSummary(me).then(setRecords), [me])
   useEffect(() => {
     void refresh()
+    void listBreakins().then((b) => setStrangerCount(b.length))
   }, [refresh, identities.length])
 
   // Other real accounts that look like the same person (same email or same name).
@@ -50,10 +55,6 @@ export function AccountPage() {
   }, [identities, account, me])
 
   if (!account) return null
-
-  const member = suite.family.find((m) => m.identityId === me)
-  const focus = suite.focus.filter((f) => f.identityId === me)
-  const checkins = suite.checkins.filter((c) => c.identityId === me)
 
   const saveProfile = async () => {
     const email = draft.email.trim()
@@ -94,15 +95,28 @@ export function AccountPage() {
 
   const everything = [
     { icon: KeyRound, label: 'Vault', value: records.hasVault ? `${records.vaultItems} item${records.vaultItems === 1 ? '' : 's'}` : 'Not set up', to: '/apps/vault' },
-    { icon: EyeOff, label: 'Eyes-Only', value: `${records.docsOwned} sent · ${records.docsShared} received`, to: '/apps/eyes-only' },
-    { icon: Target, label: 'Focus', value: `${focus.length} session${focus.length === 1 ? '' : 's'}`, to: '/apps/focus' },
-    { icon: CalendarCheck2, label: 'Attendance', value: `${checkins.length} check-in${checkins.length === 1 ? '' : 's'}`, to: '/apps/attendance' },
-    { icon: Users, label: 'Family', value: member ? `${member.role === 'parent' ? 'Parent' : 'Kid'} · ${member.name}` : 'Not in a family', to: '/apps/family' },
+    { icon: ShieldCheck, label: 'Authenticator', value: records.hasVault ? '2FA codes' : 'Not set up', to: '/apps/auth' },
+    { icon: Mail, label: 'Mail', value: `${records.docsOwned} sent · ${records.docsShared} received`, to: '/apps/mail' },
+    { icon: ShieldAlert, label: 'Security', value: strangerCount ? `${strangerCount} stranger alert${strangerCount === 1 ? '' : 's'}` : 'All clear', to: '/apps/security' },
+    { icon: ShieldHalf, label: 'Guard', value: 'Walk-away lock on', to: '/apps/guard' },
+    ...(isAdmin ? [{ icon: ShieldHalf, label: 'Admin', value: 'Console', to: '/apps/admin' }] : []),
   ]
 
   return (
     <>
-      <PageHeader title="Your account" description="One Optic account per person. Every optic scan and everything you do in every app lives here." />
+      <PageHeader title="Your security hub" description="Everything that protects you, in one place — your face, your vault, your 2FA, and who's been at your screen." />
+
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <SecurityStat icon={<ScanEye className="size-4" />} label="Verified" value={session.lastVerifiedAt ? timeAgo(session.lastVerifiedAt) : 'just now'} tone="ok" />
+        <SecurityStat icon={<Fingerprint className="size-4" />} label="Optic scans" value={String(myScans.length)} tone="ok" />
+        <SecurityStat icon={<KeyRound className="size-4" />} label="Vault" value={records.hasVault ? `${records.vaultItems}` : 'Off'} tone={records.hasVault ? 'ok' : 'neutral'} />
+        <SecurityStat
+          icon={<ShieldAlert className="size-4" />}
+          label="Stranger alerts"
+          value={String(strangerCount)}
+          tone={strangerCount ? 'bad' : 'ok'}
+        />
+      </div>
       {notice && (
         <div className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft px-4 py-3 text-[13px] text-ink" data-testid="account-notice">
           {notice}
@@ -147,7 +161,7 @@ export function AccountPage() {
         </Card>
 
         <Card className="p-6">
-          <div className="text-[13px] font-semibold text-ink">Everything in your account</div>
+          <div className="text-[13px] font-semibold text-ink">Your security, app by app</div>
           <div className="mt-3 grid grid-cols-2 gap-2" data-testid="account-summary">
             {everything.map((x) => (
               <Link key={x.label} to={x.to} className="rounded-xl border border-line px-3 py-2.5 transition hover:border-line-strong hover:bg-surface-2/50">
@@ -245,6 +259,25 @@ export function AccountPage() {
         <p className="text-[13px] text-muted">Family profiles and roster entries for this account are removed too.</p>
       </Modal>
     </>
+  )
+}
+
+function SecurityStat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: 'ok' | 'bad' | 'neutral' }) {
+  return (
+    <Card className="flex items-center gap-3 p-4">
+      <span
+        className={cx(
+          'flex size-9 shrink-0 items-center justify-center rounded-xl',
+          tone === 'bad' ? 'bg-bad-soft text-bad' : tone === 'ok' ? 'bg-ok-soft text-ok' : 'bg-surface-2 text-muted',
+        )}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 leading-tight">
+        <div className="truncate text-[16px] font-semibold text-ink">{value}</div>
+        <div className="truncate text-[11.5px] text-muted">{label}</div>
+      </div>
+    </Card>
   )
 }
 
