@@ -142,6 +142,33 @@ export function DemoControls({ compact }: { compact?: boolean }) {
 
         <div>
           <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-muted">
+            <UserRound className="size-3.5" /> Test as account
+          </div>
+          <Select
+            className="h-8 text-[13px]"
+            value={demo.overrideIdentityId ?? ''}
+            onChange={(e) => setDemo({ overrideIdentityId: e.target.value || null })}
+            data-testid="demo-override"
+          >
+            <option value="">Me — real scan match</option>
+            {identities
+              .filter((i) => !i.synthetic && i.status === 'active')
+              .map((i) => (
+                <option key={i.id} value={i.id}>
+                  Act as {i.name}
+                  {i.email ? ` · ${i.email}` : ''}
+                </option>
+              ))}
+          </Select>
+          {demo.overrideIdentityId && (
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-warn">
+              Testing override on: a real scan will sign you in as this account. Turn off for real use.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-muted">
             <Camera className="size-3.5" /> Sensor source
           </div>
           <div className="inline-flex w-full rounded-lg border border-line bg-surface-2 p-0.5">

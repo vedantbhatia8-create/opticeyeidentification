@@ -344,6 +344,19 @@ export class IdentityService {
     return best
   }
 
+  /**
+   * Testing override: when set to an enrolled account id, a successful real scan
+   * resolves to THAT account instead of the person actually scanned. For trying
+   * the apps as another account; never a security control.
+   */
+  private testOverride: string | null = null
+  setTestOverride(identityId: string | null) {
+    this.testOverride = identityId && this.identities.get(identityId)?.status === 'active' ? identityId : null
+  }
+  getTestOverride() {
+    return this.testOverride
+  }
+
   async verify(probe: BiometricSample[], policy: MatchPolicy = DEFAULT_MATCH_POLICY): Promise<IdentityVerification> {
     const { key, store } = await this.requireReady()
     const canonicalIds = new Map<string, string>()
@@ -376,9 +389,10 @@ export class IdentityService {
       const next = { ...scan, matchCount: scan.matchCount + 1, lastMatchedAt: Date.now() }
       this.scans.set(scan.id, next)
       store.put(STORES.scans, next).then(() => this.emit())
+      const resolved = (this.testOverride && this.identities.get(this.testOverride)) || this.identities.get(result.match.identityId)!
       return {
         status: 'verified',
-        identity: this.identities.get(result.match.identityId)!,
+        identity: resolved,
         scanId: result.match.scanId,
         confidence: result.match.score.similarity,
         distance: result.match.score.components.embeddingDistance,

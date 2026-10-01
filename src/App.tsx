@@ -61,6 +61,7 @@ import { VaultApp } from './features/suite/VaultApp'
 import { AuthenticatorApp } from './features/suite/AuthenticatorApp'
 import { SecurityApp } from './features/suite/SecurityApp'
 import { TotpTestPage } from './features/extension/TotpTestPage'
+import { OtherPage } from './features/other/OtherPage'
 import { initServices } from './state/services'
 import { useStore } from './state/store'
 
@@ -118,6 +119,7 @@ export function App() {
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/p" element={<QuickPasswords />} />
         <Route path="/test/authenticator" element={<TotpTestPage />} />
+        <Route path="/other" element={<OtherPage />} />
 
         {/* Phase 2 — Office */}
         <Route path="/office" element={<ConsoleLayout product="office" nav={OFFICE_NAV} siteName={officeSite} terminalTo="/terminal/office" />}>

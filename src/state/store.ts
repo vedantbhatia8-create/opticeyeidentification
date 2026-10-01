@@ -22,6 +22,8 @@ export interface DemoSettings {
   /** Persona key, 'unknown', or null for "use my real eyes". */
   subject: string | null
   clockOffsetMs: number
+  /** Testing: resolve a real scan to this enrolled account instead. */
+  overrideIdentityId: string | null
 }
 
 export interface Settings {
@@ -98,7 +100,7 @@ const defaultSettings: Settings = {
   showDiagnostics: false,
   demoPeople: false,
 }
-const defaultDemo: DemoSettings = { enabled: false, subject: null, clockOffsetMs: 0 }
+const defaultDemo: DemoSettings = { enabled: false, subject: null, clockOffsetMs: 0, overrideIdentityId: null }
 
 const relockTimers = new Map<string, number>()
 

@@ -56,8 +56,10 @@ export function initServices() {
 
 function initServicesOnce() {
   clock.setOffset(useStore.getState().demo.clockOffsetMs)
+  identityService.setTestOverride(useStore.getState().demo.overrideIdentityId)
   useStore.subscribe((s, prev) => {
     if (s.demo.clockOffsetMs !== prev.demo.clockOffsetMs) clock.setOffset(s.demo.clockOffsetMs)
+    if (s.demo.overrideIdentityId !== prev.demo.overrideIdentityId) identityService.setTestOverride(s.demo.overrideIdentityId)
   })
   const { demoPeople } = useStore.getState().settings
   return identityService.init(demoPeople ? DEMO_PERSONAS : []).then(async () => {
