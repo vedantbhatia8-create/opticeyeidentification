@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Connect } from './features/connect/Connect'
 import { DemoGuide } from './features/demo/DemoGuide'
 import {
   FrontDeskPage,
@@ -98,6 +99,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/demo" element={<DemoGuide />} />
+        <Route path="/connect" element={<Connect />} />
 
         {/* Phase 1 — Optic Sensor Lab */}
         <Route path="/lab" element={<LabLayout />}>
