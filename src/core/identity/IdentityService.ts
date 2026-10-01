@@ -120,11 +120,11 @@ export class IdentityService {
     this.identities.set(identity.id, identity)
   }
 
-  private async putScan(identityId: string, label: string, template: OpticTemplate, synthetic: boolean) {
+  private async putScan(identityId: string, label: string, template: OpticTemplate, synthetic: boolean, id?: string) {
     const store = this.store!
     const sealed = await seal(this.key!, template)
     const scan: StoredScan = {
-      id: newId('scn'),
+      id: id ?? newId('scn'),
       identityId,
       label,
       createdAt: Date.now(),
@@ -323,6 +323,47 @@ export class IdentityService {
     const scan = this.scans.get(scanId)
     if (!scan) return null
     return this.templateCache.get(scanId) ?? unseal<OpticTemplate>(key, scan.sealed)
+  }
+
+  // ── Cross-device enrollment sync ───────────────────────────────────────────
+  /** Every real (non-synthetic) identity with its raw templates, for encrypted sync. */
+  async exportForSync(): Promise<Array<{ identity: Identity; scans: Array<{ id: string; label: string; createdAt: number; template: OpticTemplate }> }>> {
+    const { key } = await this.requireReady()
+    const out: Array<{ identity: Identity; scans: Array<{ id: string; label: string; createdAt: number; template: OpticTemplate }> }> = []
+    for (const identity of this.identities.values()) {
+      if (identity.synthetic || identity.status !== 'active') continue
+      const scans: Array<{ id: string; label: string; createdAt: number; template: OpticTemplate }> = []
+      for (const s of this.scans.values()) {
+        if (s.identityId !== identity.id || s.synthetic) continue
+        const template = this.templateCache.get(s.id) ?? (await unseal<OpticTemplate>(key, s.sealed))
+        this.templateCache.set(s.id, template)
+        scans.push({ id: s.id, label: s.label, createdAt: s.createdAt, template })
+      }
+      if (scans.length) out.push({ identity, scans })
+    }
+    return out
+  }
+
+  /**
+   * Import an identity + templates synced from another of your devices. Scans
+   * keep their source id so re-imports dedupe. Templates are re-sealed with
+   * this device's local key. Returns the number of new scans added.
+   */
+  async importFromSync(entry: { identity: Identity; scans: Array<{ id: string; label: string; createdAt: number; template: OpticTemplate }> }): Promise<number> {
+    await this.requireReady()
+    const existing = this.identities.get(entry.identity.id)
+    const identity: Identity = existing
+      ? { ...existing, name: existing.name || entry.identity.name, email: existing.email ?? entry.identity.email }
+      : { ...entry.identity, synthetic: false, status: 'active' }
+    await this.putIdentity(identity)
+    let added = 0
+    for (const s of entry.scans) {
+      if (this.scans.has(s.id)) continue
+      await this.putScan(identity.id, s.label, s.template, false, s.id)
+      added++
+    }
+    if (added) this.emit()
+    return added
   }
 
   // ── Verification ─────────────────────────────────────────────────────────

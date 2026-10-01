@@ -197,6 +197,8 @@ export function EnrollmentSession({
     samples.current = [] // drop in-memory samples
     await sensor.stop()
     setStage({ kind: 'done', ...result })
+    // Sync this enrollment to your other linked devices (real accounts only).
+    if (!demoSeed) void import('../devices/enrollmentSync').then((m) => m.pushEnrollments()).catch(() => {})
     onComplete?.(result)
   }
 

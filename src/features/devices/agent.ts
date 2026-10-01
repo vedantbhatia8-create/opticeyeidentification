@@ -10,6 +10,7 @@ import { openCamera, releaseStream } from '../../core/sensor/webcam/camera'
 import { captureSnapshot } from '../suite/breakins'
 import { sb, type CommandRow } from './supabase'
 import { completeCommand, deviceId, heartbeat, listDevices, registerDevice, setLocked } from './devices'
+import { pullEnrollments, pushEnrollments } from './enrollmentSync'
 
 interface AgentState {
   locked: boolean
@@ -52,6 +53,11 @@ async function handleCommand(cmd: CommandRow) {
 export function startDeviceAgent(): () => void {
   let stopped = false
   void registerDevice()
+  // Keep enrollment in sync both ways: pull others' enrollments in, push ours up.
+  void pullEnrollments()
+    .catch(() => 0)
+    .then(() => pushEnrollments())
+    .catch(() => 0)
 
   // Reflect any lock already set on this device's row (e.g. locked while offline).
   void listDevices().then((rows) => {
