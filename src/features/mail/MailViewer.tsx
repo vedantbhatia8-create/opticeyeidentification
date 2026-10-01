@@ -9,7 +9,7 @@ import { TerminalShell } from '../sensor/TerminalShell'
 import { useGlance, usePresence } from '../suite/presence'
 import { getDoc, type OpticDoc } from '../suite/secure'
 import { useSession, useSuite } from '../suite/store'
-import { inbox, markRead, openMail, sent, type MailMessage } from './store'
+import { inbox, markRead, openMail, openMailCredential, sent, type MailMessage, type SharedCredential } from './store'
 
 type Meta = Omit<MailMessage, 'sealed'>
 type DocMeta = Omit<OpticDoc, 'sealed'>
@@ -18,7 +18,7 @@ type Phase =
   | { kind: 'missing' }
   | { kind: 'ready'; meta: Meta }
   | { kind: 'denied'; meta: Meta | null; title: string; detail: string; who?: string }
-  | { kind: 'open'; meta: Meta; body: string; viewerId: string; viewerName: string; openedAt: number }
+  | { kind: 'open'; meta: Meta; body: string; credential: SharedCredential | null; viewerId: string; viewerName: string; openedAt: number }
 
 const MAX_OPEN_MS = 10 * 60_000
 
@@ -67,10 +67,11 @@ export function MailViewer() {
       return
     }
     const body = await openMail(meta.id)
+    const credential = meta.hasCredential ? await openMailCredential(meta.id) : null
     if (body === null) return setPhase({ kind: 'missing' })
     await markRead(meta.id)
     log({ app: 'eyes-only', action: 'open', detail: `Opened mail “${meta.subject}”`, identityId: g.identityId, name: g.name ?? '', ok: true, ref: meta.id })
-    setPhase({ kind: 'open', meta, body, viewerId: g.identityId, viewerName: g.name ?? '', openedAt: Date.now() })
+    setPhase({ kind: 'open', meta, body, credential, viewerId: g.identityId, viewerName: g.name ?? '', openedAt: Date.now() })
   }
 
   return (
@@ -231,6 +232,7 @@ function ProtectedView({ phase, onClose }: { phase: Extract<Phase, { kind: 'open
               <div className="text-[15.5px] leading-relaxed whitespace-pre-wrap" data-testid="mail-body-text">
                 {phase.body}
               </div>
+              {phase.credential && <SharedCredentialCard cred={phase.credential} />}
               {attachments.length > 0 && (
                 <div className="mt-6 border-t border-black/10 pt-4">
                   <div className="mb-2 font-mono text-[10.5px] tracking-[0.18em] text-black/40 uppercase">Eyes-only attachments</div>
@@ -281,6 +283,36 @@ function ProtectedView({ phase, onClose }: { phase: Extract<Phase, { kind: 'open
         <Link to="/apps/mail" className="underline-offset-4 hover:underline">
           Back to inbox
         </Link>
+      </div>
+    </div>
+  )
+}
+
+function SharedCredentialCard({ cred }: { cred: SharedCredential }) {
+  const copy = (v?: string) => v && navigator.clipboard.writeText(v)
+  return (
+    <div className="mt-6 rounded-xl border border-black/10 bg-black/[0.03] p-4" data-testid="mail-credential">
+      <div className="mb-2 font-mono text-[10.5px] tracking-[0.18em] text-black/40 uppercase">Shared password · {cred.title}</div>
+      <div className="grid gap-1.5 text-[13.5px] text-[#111]">
+        {cred.username && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono">{cred.username}</span>
+            <button onClick={() => copy(cred.username)} className="rounded-md border border-black/15 px-2 py-0.5 text-[12px] hover:bg-black/5">
+              Copy user
+            </button>
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-mono tracking-[0.12em]">{cred.password}</span>
+          <button
+            onClick={() => copy(cred.password)}
+            className="rounded-md border border-black/15 px-2 py-0.5 text-[12px] hover:bg-black/5"
+            data-testid="mail-cred-copy"
+          >
+            Copy password
+          </button>
+        </div>
+        {cred.url && <div className="text-[12px] text-black/50">{cred.url}</div>}
       </div>
     </div>
   )

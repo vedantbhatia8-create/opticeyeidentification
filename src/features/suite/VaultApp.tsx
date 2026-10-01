@@ -1,4 +1,4 @@
-import { Copy, Eye, EyeOff, FileText, Globe, KeyRound, Lock, Pencil, Plus, RefreshCw, Search, ShieldCheck, StickyNote, Trash2 } from 'lucide-react'
+import { Check, Copy, Eye, EyeOff, FileText, Globe, KeyRound, Lock, Pencil, Plus, RefreshCw, Search, Send, Share2, ShieldCheck, StickyNote, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { timeAgo } from '../../ui/format'
 import { Modal } from '../../ui/overlay'
@@ -16,6 +16,8 @@ import {
   WrongPinError,
   type VaultItem,
 } from './secure'
+import { identityService } from '../../core/identity/IdentityService'
+import { sendMail } from '../mail/store'
 import { useSession, useSuite } from './store'
 
 export const AUTO_LOCK_MS = 5 * 60_000
@@ -344,6 +346,7 @@ function ItemDetail({ me, item, onEdit, refresh, bump }: { me: string; item: Vau
   const name = useSession((s) => s.name) ?? ''
   const [revealed, setRevealed] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
+  const [sharing, setSharing] = useState(false)
   const strength = useMemo(() => passwordStrength(item.password ?? ''), [item.password])
 
   const approve = async (reason: string, recent = true) => {
@@ -368,6 +371,16 @@ function ItemDetail({ me, item, onEdit, refresh, bump }: { me: string; item: Vau
 
   return (
     <div className="p-6" data-testid="vault-detail">
+      {sharing && (
+        <ShareDialog
+          me={me}
+          senderName={name}
+          item={item}
+          onClose={() => setSharing(false)}
+          approve={() => approve(`Share ${item.title} securely`)}
+          onSent={(toName) => log({ app: 'vault', action: 'share', detail: `Shared ${item.title} with ${toName}`, identityId: me, name, ok: true })}
+        />
+      )}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-xl border border-line bg-surface-2 text-[18px] font-semibold text-ink">
@@ -379,6 +392,11 @@ function ItemDetail({ me, item, onEdit, refresh, bump }: { me: string; item: Vau
           </div>
         </div>
         <div className="flex gap-1.5">
+          {item.type === 'login' && (
+            <Button size="sm" icon={<Share2 className="size-3.5" />} onClick={() => setSharing(true)} data-testid="vault-share">
+              Share
+            </Button>
+          )}
           <Button size="sm" icon={<Pencil className="size-3.5" />} onClick={onEdit}>
             Edit
           </Button>
@@ -550,6 +568,96 @@ function ItemEditor({ item, onClose, onSave }: { item: Partial<VaultItem> | null
           />
         </Field>
       </div>
+    </Modal>
+  )
+}
+
+/** Send a vault login to another Optic account as a recipient-only credential in Mail. */
+function ShareDialog({
+  me,
+  senderName,
+  item,
+  onClose,
+  approve,
+  onSent,
+}: {
+  me: string
+  senderName: string
+  item: VaultItem
+  onClose: () => void
+  approve: () => Promise<boolean>
+  onSent: (toName: string) => void
+}) {
+  const recipients = identityService
+    .getSnapshot()
+    .identities.filter((i) => !i.synthetic && i.status === 'active' && !identityService.isSameAccount(i.id, me))
+  const [toId, setToId] = useState(recipients[0]?.id ?? '')
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState(false)
+  const to = recipients.find((r) => r.id === toId)
+
+  const share = async () => {
+    if (!to) return
+    setBusy(true)
+    if (!(await approve())) return setBusy(false)
+    await sendMail(
+      { id: me, name: senderName },
+      {
+        toId: to.id,
+        toName: to.name,
+        subject: `Shared password: ${item.title}`,
+        body: note.trim() || `${senderName.split(' ')[0] || 'Someone'} shared the login for ${item.title} with you.`,
+        credential: { title: item.title, username: item.username, password: item.password, url: item.url },
+      },
+    )
+    onSent(to.name)
+    setDone(true)
+    setBusy(false)
+  }
+
+  return (
+    <Modal open onClose={onClose} title={done ? 'Shared' : `Share “${item.title}”`} description={done ? undefined : 'Sent through Optic Mail — only the recipient can reveal it, on their glance.'}>
+      {done ? (
+        <div className="flex flex-col items-center gap-3 py-4 text-center" data-testid="vault-share-done">
+          <span className="flex size-12 items-center justify-center rounded-full border border-ok/30 bg-ok-soft text-ok">
+            <Check className="size-6" />
+          </span>
+          <div className="text-[14px] text-ink">Sent to {to?.name}. They’ll see it in Optic Mail.</div>
+          <Button variant="primary" onClick={onClose}>Done</Button>
+        </div>
+      ) : recipients.length === 0 ? (
+        <div className="py-4 text-center text-[13.5px] text-muted" data-testid="vault-share-none">
+          No other Optic accounts are enrolled on this device to share with.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Field label="Send to">
+            <select
+              value={toId}
+              onChange={(e) => setToId(e.target.value)}
+              className="h-9 w-full appearance-none rounded-xl border border-line bg-surface-2/70 px-3 text-sm text-ink outline-none focus:border-accent/60"
+              data-testid="vault-share-to"
+            >
+              {recipients.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                  {r.email ? ` · ${r.email}` : ''}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Note (optional)">
+            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Here's the login…" />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="primary" icon={<Send className="size-4" />} loading={busy} onClick={share} data-testid="vault-share-send">
+              Share securely
+            </Button>
+          </div>
+        </div>
+      )}
     </Modal>
   )
 }

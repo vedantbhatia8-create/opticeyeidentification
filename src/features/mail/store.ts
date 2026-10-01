@@ -41,7 +41,18 @@ export interface MailMessage {
   readAt: number | null
   revoked: boolean
   docIds: string[]
+  /** True when a sealed credential (shared password) rides with this message. */
+  hasCredential: boolean
   sealed: { iv: string; data: string }
+  /** Sealed shared credential, revealed only to the verified recipient. */
+  sealedCred?: Sealed
+}
+
+export interface SharedCredential {
+  title: string
+  username?: string
+  password?: string
+  url?: string
 }
 
 export interface MailDraft {
@@ -50,9 +61,10 @@ export interface MailDraft {
   subject: string
   body: string
   docIds?: string[]
+  credential?: SharedCredential
 }
 
-const strip = ({ sealed: _s, ...meta }: MailMessage): Omit<MailMessage, 'sealed'> => meta
+const strip = ({ sealed: _s, sealedCred: _c, ...meta }: MailMessage): Omit<MailMessage, 'sealed' | 'sealedCred'> => meta
 
 async function allMail(): Promise<MailMessage[]> {
   const all = await (await store()).getAll<MailMessage>(STORES.suite)
@@ -61,7 +73,8 @@ async function allMail(): Promise<MailMessage[]> {
 
 /** Seals the body, stores the message, and returns it (the key is never exposed). */
 export async function sendMail(from: { id: string; name: string }, draft: MailDraft): Promise<MailMessage> {
-  const sealed: Sealed = await seal(await docKey(), draft.body)
+  const key = await docKey()
+  const sealed: Sealed = await seal(key, draft.body)
   const message: MailMessage = {
     id: rid('mail'),
     kind: 'mail-message',
@@ -74,14 +87,16 @@ export async function sendMail(from: { id: string; name: string }, draft: MailDr
     readAt: null,
     revoked: false,
     docIds: draft.docIds ?? [],
+    hasCredential: !!draft.credential,
     sealed,
+    sealedCred: draft.credential ? await seal(key, JSON.stringify(draft.credential)) : undefined,
   }
   await (await store()).put(STORES.suite, message)
   return message
 }
 
 /** Messages addressed to this account, not revoked, newest first. */
-export async function inbox(identityId: string): Promise<Omit<MailMessage, 'sealed'>[]> {
+export async function inbox(identityId: string): Promise<Omit<MailMessage, 'sealed' | 'sealedCred'>[]> {
   return (await allMail())
     .filter((m) => !m.revoked && identityService.isSameAccount(m.toId, identityId))
     .sort((a, b) => b.createdAt - a.createdAt)
@@ -89,7 +104,7 @@ export async function inbox(identityId: string): Promise<Omit<MailMessage, 'seal
 }
 
 /** Messages sent from this account, newest first. */
-export async function sent(identityId: string): Promise<Omit<MailMessage, 'sealed'>[]> {
+export async function sent(identityId: string): Promise<Omit<MailMessage, 'sealed' | 'sealedCred'>[]> {
   return (await allMail())
     .filter((m) => identityService.isSameAccount(m.fromId, identityId))
     .sort((a, b) => b.createdAt - a.createdAt)
@@ -101,6 +116,13 @@ export async function openMail(id: string): Promise<string | null> {
   const m = await (await store()).get<MailMessage>(STORES.suite, id)
   if (!m || m.kind !== 'mail-message') return null
   return unseal<string>(await docKey(), m.sealed)
+}
+
+/** Decrypts the shared credential. Callers must have verified the reader is the recipient. */
+export async function openMailCredential(id: string): Promise<SharedCredential | null> {
+  const m = await (await store()).get<MailMessage>(STORES.suite, id)
+  if (!m || m.kind !== 'mail-message' || !m.sealedCred) return null
+  return unseal<SharedCredential>(await docKey(), m.sealedCred)
 }
 
 export async function markRead(id: string): Promise<void> {
