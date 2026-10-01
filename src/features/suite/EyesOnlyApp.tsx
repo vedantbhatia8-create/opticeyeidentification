@@ -19,7 +19,7 @@ export function docStatus(d: DocMeta, now = Date.now()): { label: string; tone: 
   return { label: 'Active', tone: 'ok' }
 }
 
-export function EyesOnlyApp() {
+export function EyesOnlyApp({ embedded = false }: { embedded?: boolean } = {}) {
   const me = useSession((s) => s.identityId)!
   const [docs, setDocs] = useState<DocMeta[]>([])
   const [tab, setTab] = useState<'inbox' | 'sent'>('inbox')
@@ -36,15 +36,24 @@ export function EyesOnlyApp() {
 
   return (
     <>
-      <PageHeader
-        title="Optic Eyes-Only"
-        description="Documents that open only for their intended readers — and only while those readers are looking. Shoulder-surfers see a blur."
-        actions={
-          <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setCreating(true)} data-testid="eo-new">
+      {embedded ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-2xl text-[13.5px] text-muted">Documents that open only for their intended readers — and only while those readers are looking. Shoulder-surfers see a blur.</p>
+          <Button variant="primary" size="sm" icon={<Plus className="size-4" />} onClick={() => setCreating(true)} data-testid="eo-new">
             New eyes-only document
           </Button>
-        }
-      />
+        </div>
+      ) : (
+        <PageHeader
+          title="Optic Eyes-Only"
+          description="Documents that open only for their intended readers — and only while those readers are looking. Shoulder-surfers see a blur."
+          actions={
+            <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setCreating(true)} data-testid="eo-new">
+              New eyes-only document
+            </Button>
+          }
+        />
+      )}
       <div className="mb-4 inline-flex rounded-lg border border-line bg-surface p-0.5 shadow-[var(--shadow-card)]">
         {(
           [

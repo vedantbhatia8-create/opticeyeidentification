@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { isSameDay, timeAgo } from '../../ui/format'
 import { Badge, Card, CardHeader, cx, EmptyState } from '../../ui/primitives'
+import { inbox } from '../mail/store'
 import { useIdentities } from '../sensor/hooks'
 import { SUITE_APPS } from './apps'
 import { listDocs, type OpticDoc } from './secure'
@@ -18,10 +19,12 @@ export function SuiteHome() {
   const suite = useSuite()
   const { identities } = useIdentities()
   const [docs, setDocs] = useState<Omit<OpticDoc, 'sealed'>[]>([])
+  const [unreadMail, setUnreadMail] = useState(0)
+  const me = session.identityId!
   useEffect(() => {
     listDocs().then(setDocs)
-  }, [])
-  const me = session.identityId!
+    if (me) inbox(me).then((msgs) => setUnreadMail(msgs.filter((m) => m.readAt === null).length))
+  }, [me])
   const prefs = suite.prefs[me]
   const member = suite.family.find((m) => m.identityId === me)
   const accent = prefs?.accent ?? member?.accent ?? ACCENTS[0]
@@ -36,13 +39,13 @@ export function SuiteHome() {
     const nextEvent = suite.attendance.filter((e) => e.end > Date.now()).sort((a, b) => a.start - b.start)[0]
     return {
       vault: 'Glance + PIN to open',
-      'eyes-only': `${docs.filter((d) => d.ownerId === me).length} yours · ${sharedWithMe} shared with you`,
+      'eyes-only': `${unreadMail} unread · ${sharedWithMe} eyes-only docs shared with you`,
       guard: suite.guard.enabled ? 'On · protecting this session' : 'Off',
       family: `${kids.length} kids · ${kidMin} min screen time today`,
       focus: `${focusMin} focused min today`,
       attendance: nextEvent ? `Next: ${nextEvent.name}` : 'No upcoming events',
     } as Record<string, string>
-  }, [docs, suite, me])
+  }, [docs, suite, me, unreadMail])
 
   const events = suite.events.slice(0, 8)
   const enrolledCount = identities.filter((i) => i.status === 'active').length

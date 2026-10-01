@@ -30,6 +30,8 @@ import { LabAuthenticate } from './features/lab/LabAuthenticate'
 import { LookAlikeTuning } from './features/lab/LookAlikeTuning'
 import { ExtensionPage } from './features/extension/ExtensionPage'
 import { VerifyPage } from './features/extension/VerifyPage'
+import { MailApp } from './features/mail/MailApp'
+import { MailViewer } from './features/mail/MailViewer'
 import { QuickPasswords } from './features/suite/QuickPasswords'
 import { LabHome } from './features/lab/LabHome'
 import { LabLayout } from './features/lab/LabLayout'
@@ -47,7 +49,6 @@ import { TerminalPage } from './features/terminal/TerminalPage'
 import { AccountPage } from './features/suite/AccountPage'
 import { SuiteActivity } from './features/suite/ActivityPage'
 import { AttendanceApp, AttendanceKiosk } from './features/suite/AttendanceApp'
-import { EyesOnlyApp } from './features/suite/EyesOnlyApp'
 import { EyesOnlyViewer } from './features/suite/EyesOnlyViewer'
 import { FamilyApp, FamilyScreen } from './features/suite/FamilyApp'
 import { FocusApp } from './features/suite/FocusApp'
@@ -150,12 +151,14 @@ export function App() {
         >
           <Route path="signin" element={<SignIn />} />
           <Route path="view/:docId" element={<EyesOnlyViewer />} />
+          <Route path="mail/view/:id" element={<MailViewer />} />
           <Route path="family/screen" element={<FamilyScreen />} />
           <Route path="attendance/kiosk/:eventId" element={<AttendanceKiosk />} />
           <Route element={<SuiteLayout />}>
             <Route index element={<SuiteHome />} />
             <Route path="vault" element={<VaultApp />} />
-            <Route path="eyes-only" element={<EyesOnlyApp />} />
+            <Route path="mail" element={<MailApp />} />
+            <Route path="eyes-only" element={<Navigate to="/apps/mail?tab=documents" replace />} />
             <Route path="guard" element={<GuardApp />} />
             <Route path="family" element={<FamilyApp />} />
             <Route path="focus" element={<FocusApp />} />
