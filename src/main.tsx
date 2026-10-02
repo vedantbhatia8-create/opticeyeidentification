@@ -35,11 +35,39 @@ function wipeStaleData(): Promise<void> {
   })
 }
 
-wipeStaleData().then(async () => {
-  const { App } = await import('./App')
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  )
+/**
+ * Self-heal stale deploys. When a new version ships, Vite's code-split chunks
+ * get new content-hashed names. A tab opened before the deploy still asks for
+ * the old chunk URLs, which now 404 ("failed to fetch dynamically imported
+ * module"). Reload once to pull the fresh index.html + current chunk names.
+ */
+const RELOAD_FLAG = 'optic-stale-reload'
+function reloadOnceForStaleChunk() {
+  try {
+    if (sessionStorage.getItem(RELOAD_FLAG) === '1') return // already tried; avoid a loop
+    sessionStorage.setItem(RELOAD_FLAG, '1')
+  } catch {
+    /* storage unavailable — reload anyway */
+  }
+  location.reload()
+}
+window.addEventListener('vite:preloadError', (e) => {
+  e.preventDefault()
+  reloadOnceForStaleChunk()
 })
+
+wipeStaleData()
+  .then(async () => {
+    const { App } = await import('./App')
+    try {
+      sessionStorage.removeItem(RELOAD_FLAG) // loaded cleanly; re-arm for the next deploy
+    } catch {
+      /* ignore */
+    }
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
+  })
+  .catch(() => reloadOnceForStaleChunk())
