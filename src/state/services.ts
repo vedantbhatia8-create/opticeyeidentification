@@ -69,6 +69,20 @@ function initServicesOnce() {
     const { consolidateAccounts } = await import('./accounts')
     const merged = await consolidateAccounts()
     if (merged) console.info(`[optic] merged ${merged} duplicate account(s)`)
+    // Automatic cross-browser enrollment sync — fire-and-forget so a slow or
+    // unreachable backend never blocks the app from rendering. Pushes any local
+    // enrollments up, then pulls every enrollment down so a glance recognizes
+    // you on any browser.
+    void (async () => {
+      try {
+        const { pushEnrollments, pullEnrollments } = await import('../features/devices/enrollmentSync')
+        const up = await pushEnrollments()
+        const down = await pullEnrollments()
+        console.info(`[optic] enrollment sync: pushed ${up}, pulled ${down}`)
+      } catch (err) {
+        console.warn('[optic] enrollment sync skipped:', err)
+      }
+    })()
   })
 }
 
